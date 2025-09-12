@@ -9,7 +9,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, TrashIcon, X } from "lucide-react";
+import { PencilIcon, TrashIcon, PlusIcon } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -19,9 +19,10 @@ import {
   PaginationEllipsis,
   PaginationNext,
 } from "@/components/ui/pagination";
+import { Input } from "@/components/ui/input";
 
 const CategoryTable = () => {
-  const keywords: {
+  const categories: {
     id: string;
     name: string;
     count: number;
@@ -55,6 +56,13 @@ const CategoryTable = () => {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex gap-2">
+        <Button>
+          <PlusIcon />
+          Add Category
+        </Button>
+        <Input placeholder="Search Keyword" className="w-64" />
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -66,18 +74,18 @@ const CategoryTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {keywords.map((keyword) => (
-            <TableRow key={keyword.id}>
-              <TableCell>{keyword.id}</TableCell>
-              <TableCell>{keyword.name}</TableCell>
-              <TableCell>{keyword.count}</TableCell>
-              <TableCell>{keyword.desc}</TableCell>
+          {categories.map((data) => (
+            <TableRow key={data.id}>
+              <TableCell>{data.id}</TableCell>
+              <TableCell>{data.name}</TableCell>
+              <TableCell>{data.count}</TableCell>
+              <TableCell>{data.desc}</TableCell>
               <TableCell>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => {
-                    console.log("edit", keyword);
+                    console.log("edit", data);
                   }}
                 >
                   <PencilIcon />
@@ -86,7 +94,7 @@ const CategoryTable = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => {
-                    console.log("delete", keyword);
+                    console.log("delete", data);
                   }}
                 >
                   <TrashIcon />

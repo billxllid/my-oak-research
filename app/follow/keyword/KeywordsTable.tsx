@@ -9,7 +9,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, TrashIcon, X } from "lucide-react";
+import { PencilIcon, TrashIcon, X, PlusIcon } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -20,6 +20,7 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 const KeywordsTable = () => {
   const keywords: {
@@ -55,6 +56,13 @@ const KeywordsTable = () => {
   ];
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex gap-2">
+        <Button>
+          <PlusIcon />
+          Add Keyword
+        </Button>
+        <Input placeholder="Search Keyword" className="w-64" />
+      </div>
       <Table>
         <TableHeader>
           <TableRow>

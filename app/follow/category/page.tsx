@@ -14,15 +14,6 @@ const Category = () => {
           website.
         </p>
       </div>
-
-      <div className="flex gap-2">
-        <Button>
-          <PlusIcon />
-          Add Category
-        </Button>
-        <Input placeholder="Search Keyword" className="w-64" />
-      </div>
-
       <CategoryTable />
     </div>
   );
