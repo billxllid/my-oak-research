@@ -19,6 +19,7 @@ import {
   Book,
   User2,
   ChevronUp,
+  LogOutIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -52,6 +53,19 @@ const menuItems = [
     title: "Settings",
     url: "/settings",
     icon: Settings,
+  },
+];
+
+const userMenuItems = [
+  {
+    title: "Account",
+    url: "#",
+    icon: User2,
+  },
+  {
+    title: "Sign out",
+    url: "#",
+    icon: LogOutIcon,
   },
 ];
 
@@ -96,15 +110,12 @@ const Navbar = () => {
                 side="top"
                 className="w-[--radix-popper-anchor-width]"
               >
-                <DropdownMenuItem>
-                  <span>Account</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Billing</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Sign out</span>
-                </DropdownMenuItem>
+                {userMenuItems.map((item) => (
+                  <DropdownMenuItem key={item.title}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
