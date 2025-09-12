@@ -98,7 +98,9 @@ const Navbar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2">
-          <h1 className="text-xl font-light">Oak Research</h1>
+          <h1 className="text-xl font-light">Oak</h1>
+          <h1 className="text-xl font-bold">Research</h1>
+          <h1 className="font-bold">//</h1>
         </div>
       </SidebarHeader>
 
