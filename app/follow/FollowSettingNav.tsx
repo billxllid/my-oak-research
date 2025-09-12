@@ -57,7 +57,7 @@ const menuItems = [
 
 const FollowSettingNav = () => {
   return (
-    <div className="flex flex-col w-64 gap-2 py-6">
+    <div className="flex flex-col w-64 gap-2">
       {menuItems.map((item) => (
         <Button
           asChild

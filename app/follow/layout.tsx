@@ -5,7 +5,7 @@ const FollowLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex">
       <FollowSettingNav />
-      {children}
+      <div className="flex flex-col w-full px-4">{children}</div>
     </div>
   );
 };

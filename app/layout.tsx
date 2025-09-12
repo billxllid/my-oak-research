@@ -33,7 +33,7 @@ export default function RootLayout({
         <SidebarProvider>
           <div className="flex h-screen w-screen">
             <Navbar />
-            <main className="w-full px-4">
+            <main className="container w-full px-4">
               <Headbar />
               {children}
             </main>
