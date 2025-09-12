@@ -9,8 +9,10 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 
 const Headbar = () => {
   const pathname = usePathname();
@@ -35,18 +37,26 @@ const Headbar = () => {
   const breadcrumbItems = generateBreadcrumbs();
 
   return (
-    <div className="flex items-center py-4 gap-4">
-      <SidebarTrigger />
-      <div className="flex items-center justify-between w-full">
+    <header className="flex h-16 shrink-0 items-center border-b transition-[width,height] ease-linear">
+      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+        <SidebarTrigger className="-ml-1" />
+        <Separator
+          orientation="vertical"
+          className="mx-2 data-[orientation=vertical]:h-4"
+        />
         <Breadcrumb>
           <BreadcrumbList>
             {breadcrumbItems.map(
               (item: { label: string; href: string }, index: number) => (
                 <React.Fragment key={item.label}>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href={item.href}>
-                      {item.label}
-                    </BreadcrumbLink>
+                    {index < breadcrumbItems.length - 1 ? (
+                      <BreadcrumbLink href={item.href}>
+                        {item.label}
+                      </BreadcrumbLink>
+                    ) : (
+                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                    )}
                   </BreadcrumbItem>
                   {index < breadcrumbItems.length - 1 && (
                     <BreadcrumbSeparator />
@@ -56,7 +66,7 @@ const Headbar = () => {
             )}
           </BreadcrumbList>
         </Breadcrumb>
-        <div className="flex">
+        <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost">
             <StarIcon />
           </Button>
@@ -65,7 +75,7 @@ const Headbar = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 

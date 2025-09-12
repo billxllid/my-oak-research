@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Sidebar,
@@ -91,12 +93,12 @@ const userMenuItems = [
   },
 ];
 
-const Navbar = () => {
+const Navbar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
   return (
-    <Sidebar>
+    <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl">Oak Research</h1>
+        <div className="flex items-center gap-2 p-2">
+          <h1 className="text-xl font-light">Oak Research</h1>
         </div>
       </SidebarHeader>
 
