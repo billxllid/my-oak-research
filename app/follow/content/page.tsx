@@ -1,7 +1,12 @@
 import React from "react";
+import NewsDetailCard from "./NewsDetailCard";
 
 const FollowContent = () => {
-  return <div>FollowContent</div>;
+  return (
+    <div>
+      <NewsDetailCard />
+    </div>
+  );
 };
 
 export default FollowContent;
