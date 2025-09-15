@@ -15,42 +15,42 @@ import {
 const menuItems = [
   {
     title: "Keyword",
-    url: "/follow/keyword",
+    url: "/follow/settings/keyword",
     icon: PencilLine,
   },
   {
     title: "Category",
-    url: "/follow/category",
+    url: "/follow/settings/category",
     icon: Folder,
   },
   {
     title: "Platform",
-    url: "/follow/platform",
+    url: "/follow/settings/platform",
     icon: Twitch,
   },
   {
     title: "Site",
-    url: "/follow/site",
+    url: "/follow/settings/site",
     icon: Earth,
   },
   {
     title: "Search Engine",
-    url: "/follow/search-engine",
+    url: "/follow/settings/search-engine",
     icon: Search,
   },
   {
     title: "Proxy",
-    url: "/follow/proxy",
+    url: "/follow/settings/proxy",
     icon: GlobeLock,
   },
   {
     title: "AI",
-    url: "/follow/ai",
+    url: "/follow/settings/ai",
     icon: Bot,
   },
   {
     title: "Misc",
-    url: "/follow/misc",
+    url: "/follow/settings/misc",
     icon: Blocks,
   },
 ];

@@ -36,6 +36,7 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
+import Link from "next/link";
 
 const menuItems = [
   {
@@ -122,10 +123,10 @@ const Navbar = () => {
                           {item.items.map((item) => (
                             <SidebarMenuSubItem key={item.title}>
                               <SidebarMenuSubButton asChild>
-                                <a href={item.url}>
+                                <Link href={item.url}>
                                   <item.icon />
                                   <span>{item.title}</span>
-                                </a>
+                                </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           ))}
