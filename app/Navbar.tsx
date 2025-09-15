@@ -105,19 +105,17 @@ const Navbar = () => {
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <Collapsible key={item.title} className="group/collapsible">
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton>
-                        <item.icon />
-                        <span>{item.title}</span>
-                        {item.items ? (
+              {menuItems.map((item) =>
+                item.items ? (
+                  <Collapsible key={item.title} className="group/collapsible">
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton>
+                          <item.icon />
+                          <span>{item.title}</span>
                           <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                        ) : null}
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    {item.items ? (
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {item.items.map((item) => (
@@ -132,10 +130,19 @@ const Navbar = () => {
                           ))}
                         </SidebarMenuSub>
                       </CollapsibleContent>
-                    ) : null}
+                    </SidebarMenuItem>
+                  </Collapsible>
+                ) : (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuSubButton asChild>
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuSubButton>
                   </SidebarMenuItem>
-                </Collapsible>
-              ))}
+                )
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
