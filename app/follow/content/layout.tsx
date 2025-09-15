@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import NewsCard from "./NewsCard";
 
-import { SearchIcon } from "lucide-react";
+import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const FollowContentLayout = ({ children }: { children: React.ReactNode }) => {
@@ -75,7 +75,12 @@ const FollowContentLayout = ({ children }: { children: React.ReactNode }) => {
               <SelectItem value="5">5</SelectItem>
             </SelectContent>
           </Select>
-          <Input placeholder="Search" className="rounded-full" />
+          <Input
+            placeholder="Search"
+            className="rounded-full"
+            icon={<Search size={16} />}
+            iconPosition="right"
+          />
         </div>
 
         <ScrollArea className="h-[calc(100vh-11rem)] pr-4">
