@@ -13,6 +13,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 const Headbar = () => {
   const pathname = usePathname();
@@ -51,8 +52,8 @@ const Headbar = () => {
                 <React.Fragment key={item.label}>
                   <BreadcrumbItem>
                     {index < breadcrumbItems.length - 1 ? (
-                      <BreadcrumbLink href={item.href}>
-                        {item.label}
+                      <BreadcrumbLink asChild>
+                        <Link href={item.href}>{item.label}</Link>
                       </BreadcrumbLink>
                     ) : (
                       <BreadcrumbPage>{item.label}</BreadcrumbPage>

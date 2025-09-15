@@ -8,13 +8,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import NewsCard from "./NewsCard";
+
 import { SearchIcon } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const FollowContentLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="grid grid-cols-5 gap-4">
-      <div className="col-span-2 flex flex-col gap-2 overflow-hidden">
-        <div className="flex gap-2">
+      <div className="col-span-2 flex flex-col gap-4 overflow-hidden">
+        <div className="flex gap-2 m-1">
           <Select>
             <SelectTrigger>
               <SelectValue placeholder="Platform" />
@@ -73,44 +75,64 @@ const FollowContentLayout = ({ children }: { children: React.ReactNode }) => {
               <SelectItem value="5">5</SelectItem>
             </SelectContent>
           </Select>
-          <Input placeholder="Search" />
+          <Input placeholder="Search" className="rounded-full" />
         </div>
-        <div className="flex flex-col gap-2">
-          <NewsCard
-            title="Title"
-            image="https://via.placeholder.com/150"
-            summary="Summary"
-            platform="Twitter"
-            time="2025-01-01"
-          />
-          <NewsCard
-            title="Title"
-            image="https://via.placeholder.com/150"
-            summary="Summary"
-            platform="Twitter"
-            time="2025-01-01"
-          />
-          <NewsCard
-            title="Title"
-            summary="Summary"
-            platform="Twitter"
-            time="2025-01-01"
-          />
-          <NewsCard
-            title="Title"
-            summary="Summary"
-            platform="Twitter"
-            time="2025-01-01"
-          />
-          <NewsCard
-            title="Title"
-            image="https://via.placeholder.com/150"
-            summary="Summary"
-            platform="Twitter"
-            time="2025-01-01"
-          />
-        </div>
+
+        <ScrollArea className="h-[calc(100vh-11rem)] pr-4">
+          <div className="flex flex-col gap-4">
+            <NewsCard
+              title="Title"
+              image="https://via.placeholder.com/150"
+              summary="SummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummarySummary"
+              platform="Twitter"
+              time="2025-01-01"
+            />
+            <NewsCard
+              title="Title"
+              image="https://via.placeholder.com/150"
+              summary="SummarySummarySummarySummarySummarySummarySummarySummarySummary"
+              platform="Twitter"
+              time="2025-01-01"
+              mark={true}
+            />
+            <NewsCard
+              title="Title"
+              summary="Summary"
+              platform="Twitter"
+              time="2025-01-01"
+            />
+            <NewsCard
+              title="Title"
+              summary="Summary"
+              platform="Twitter"
+              time="2025-01-01"
+              mark={true}
+            />
+            <NewsCard
+              title="Title"
+              image="https://via.placeholder.com/150"
+              summary="Summary"
+              platform="Twitter"
+              time="2025-01-01"
+            />
+            <NewsCard
+              title="Title"
+              image="https://via.placeholder.com/150"
+              summary="Summary"
+              platform="Twitter"
+              time="2025-01-01"
+            />
+            <NewsCard
+              title="Title"
+              image="https://via.placeholder.com/150"
+              summary="Summary"
+              platform="Twitter"
+              time="2025-01-01"
+            />
+          </div>
+        </ScrollArea>
       </div>
+
       <div className="col-span-3 flex flex-col gap-2">{children}</div>
     </div>
   );

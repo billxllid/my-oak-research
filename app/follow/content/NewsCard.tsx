@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Globe, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,21 +10,31 @@ interface NewsCardProps {
   image?: string;
   platform?: string;
   time?: string;
+  mark?: boolean;
 }
 
-const NewsCard = ({ title, summary, image, platform, time }: NewsCardProps) => {
+const NewsCard = ({
+  title,
+  summary,
+  image,
+  platform,
+  time,
+  mark,
+}: NewsCardProps) => {
   return (
-    <Card className="w-full">
+    <Card>
       <CardContent>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
           {image && (
-            <div className="bg-gray-200 flex-shrink-0 rounded-md w-24 h-24"></div>
+            <div className="bg-gray-200 flex-shrink-0 rounded-md w-36 h-36"></div>
           )}
 
-          <div className="flex flex-col gap-2 justify-between w-full overflow-hidden">
+          <div className="flex flex-col gap-2 justify-between overflow-hidden min-h-36 w-full">
             <div className="flex flex-col gap-2">
               <h1 className="text-lg font-bold">{title}</h1>
-              <p className="text-sm text-muted-foreground">{summary}</p>
+              <p className="text-sm text-muted-foreground break-words line-clamp-3">
+                {summary}
+              </p>
             </div>
 
             <div className="flex gap-2 justify-between items-center">
@@ -39,7 +49,11 @@ const NewsCard = ({ title, summary, image, platform, time }: NewsCardProps) => {
                 </Badge>
               </div>
               <Button variant="ghost" size="icon">
-                <Bookmark />
+                {mark ? (
+                  <Bookmark className="fill-red-500 text-red-500" />
+                ) : (
+                  <Bookmark />
+                )}
               </Button>
             </div>
           </div>
