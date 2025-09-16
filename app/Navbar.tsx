@@ -26,6 +26,9 @@ import {
   ChevronUp,
   LogOutIcon,
   ChevronRight,
+  NotepadTextDashed,
+  PencilRuler,
+  Box,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -67,6 +70,23 @@ const menuItems = [
     title: "Report",
     url: "/report",
     icon: FileText,
+    items: [
+      {
+        title: "Template",
+        url: "/report/template",
+        icon: NotepadTextDashed,
+      },
+      {
+        title: "Editor",
+        url: "/report/editor",
+        icon: PencilRuler,
+      },
+      {
+        title: "Manage",
+        url: "/report/manage",
+        icon: Box,
+      },
+    ],
   },
   {
     title: "Library",
@@ -100,7 +120,7 @@ const Navbar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
         <div className="flex items-center gap-2 p-2">
           <h1 className="text-xl font-light">Oak</h1>
           <h1 className="text-xl font-bold">Research</h1>
-          <h1 className="font-bold">//</h1>
+          <h1 className="font-bold">/ /</h1>
         </div>
       </SidebarHeader>
 

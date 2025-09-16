@@ -16,7 +16,7 @@ function Input({
 }: InputProps) {
   if (icon) {
     return (
-      <div className="relative w-full">
+      <div className="relative">
         {iconPosition === "left" && (
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
             {icon}
