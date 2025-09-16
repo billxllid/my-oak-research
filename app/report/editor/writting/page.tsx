@@ -1,24 +1,10 @@
 import React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import Link from "next/link";
+import DynamicReportEditor from "./ReportEditor";
 
 const discordMessages = [
   {
@@ -74,55 +60,10 @@ const discordMessages = [
   },
 ];
 
-const ReportEditor = () => {
+const WrittingReportEditor = () => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div className="col-span-2">
-        <div className="flex flex-col gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Template</CardTitle>
-              <CardDescription>Select a template to edit</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Template" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Template 1</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Prompt</CardTitle>
-              <CardDescription>Enter a prompt to edit</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Textarea placeholder="Enter a prompt to edit" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Material</CardTitle>
-              <CardDescription>Enter a material to edit</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Material" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Material 1</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-      <div className="hidden md:block md:col-span-3">
         <Card className="h-[calc(100vh-7rem)] bg-gray-100">
           <CardHeader>
             <CardTitle className="font-bold text-2xl">
@@ -178,15 +119,16 @@ const ReportEditor = () => {
                 placeholder="Let's talk about your report ..."
                 className="bg-white"
               />
-              <Button>
-                <Link href="/report/editor/writting">Writting</Link>
-              </Button>
+              <Button>Generate</Button>
             </div>
           </CardContent>
         </Card>
+      </div>
+      <div className="hidden md:block md:col-span-3">
+        <DynamicReportEditor />
       </div>
     </div>
   );
 };
 
-export default ReportEditor;
+export default WrittingReportEditor;

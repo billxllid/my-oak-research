@@ -2,10 +2,11 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Bookmark } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { cn } from "@/lib/utils";
 
 const NewsDetailCard = ({ markdown }: { markdown: string }) => {
   return (
-    <Card className="bg-gray-100 h-full px-8 py-14">
+    <Card className="h-full px-8 py-14 bg-gray-100">
       <CardHeader>
         <CardTitle className="mb-4">
           <div className="flex items-center gap-2 justify-between">

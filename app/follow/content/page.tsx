@@ -1,5 +1,5 @@
 import React from "react";
-import NewsDetailCard from "./NewsDetailCard";
+import NewsDetailCard from "../../components/NewsDetailCard";
 
 const markdown = `
 ## 摘要
