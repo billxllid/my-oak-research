@@ -29,6 +29,7 @@ import {
   NotepadTextDashed,
   PencilRuler,
   Box,
+  Heart,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -92,6 +93,19 @@ const menuItems = [
     title: "Library",
     url: "/library",
     icon: Book,
+    items: [
+      {
+        title: "Knowledge",
+        url: "/library/knowledge",
+        icon: Book,
+      },
+
+      {
+        title: "Favorites",
+        url: "/library/favorites",
+        icon: Heart,
+      },
+    ],
   },
   {
     title: "Settings",
