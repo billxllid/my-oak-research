@@ -1,14 +1,28 @@
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Bookmark } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
-const NewsDetailCard = () => {
+const NewsDetailCard = ({ markdown }: { markdown: string }) => {
   return (
-    <Card className="h-[calc(100vh-7rem)] bg-gray-100">
+    <Card className="bg-gray-100 h-full px-8 py-14">
       <CardHeader>
-        <CardTitle>News Detail</CardTitle>
+        <CardTitle className="mb-4">
+          <div className="flex items-center gap-2 justify-between">
+            <p className="text-4xl font-bold">News Title</p>
+            <div className="flex items-center gap-2">
+              <Bookmark size={32} className="fill-red-500 text-red-500" />
+            </div>
+          </div>
+        </CardTitle>
+        <p className="text-sm text-muted-foreground line-clamp-3">
+          News Summary News Summary News Summary
+        </p>
       </CardHeader>
-      <CardContent>
-        <p>Markdown</p>
+      <CardContent className="px-6 overflow-y-auto">
+        <article className="prose dark:prose-invert">
+          <ReactMarkdown>{markdown}</ReactMarkdown>
+        </article>
       </CardContent>
     </Card>
   );

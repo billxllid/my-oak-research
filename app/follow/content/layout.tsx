@@ -14,9 +14,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const FollowContentLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="grid grid-cols-5 gap-4">
-      <div className="col-span-2 flex flex-col gap-4 overflow-hidden">
-        <div className="flex gap-2 m-1">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div className="lg:col-span-2 flex flex-col gap-4 overflow-hidden">
+        <div className="flex gap-2 m-1 flex-wrap lg:flex-nowrap">
           <Select>
             <SelectTrigger>
               <SelectValue placeholder="Platform" />
@@ -83,7 +83,7 @@ const FollowContentLayout = ({ children }: { children: React.ReactNode }) => {
           />
         </div>
 
-        <ScrollArea className="h-[calc(100vh-11rem)] pr-4">
+        <ScrollArea className="h-[calc(100vh-11rem)] lg:h-[calc(100vh-11rem)] pr-4">
           <div className="flex flex-col gap-4">
             <NewsCard
               title="Title"
@@ -138,7 +138,9 @@ const FollowContentLayout = ({ children }: { children: React.ReactNode }) => {
         </ScrollArea>
       </div>
 
-      <div className="col-span-3 flex flex-col gap-2">{children}</div>
+      <div className="hidden lg:flex lg:col-span-3 flex-col gap-2">
+        {children}
+      </div>
     </div>
   );
 };
