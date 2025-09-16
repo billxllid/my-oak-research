@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import DynamicReportEditor from "./ReportEditor";
+import Link from "next/link";
 
 const discordMessages = [
   {
@@ -60,11 +61,29 @@ const discordMessages = [
   },
 ];
 
+const value = `
+## 摘要
+
+Excepteur efficient emerging, minim veniam anim aute carefully curated Ginza conversation exquisite perfect nostrud nisi intricate Content. Qui  international first-class nulla ut. Punctual adipisicing, essential lovely queen tempor eiusmod irure. Exclusive izakaya charming Scandinavian impeccable aute quality of life soft power pariatur Melbourne occaecat discerning. Qui wardrobe aliquip, et Porter destination Toto remarkable officia Helsinki excepteur Basset hound. Zürich sleepy perfect consectetur.
+
+## 标题1
+
+Body text for your whole article or post. We’ll put in some lorem ipsum to show how a filled-out page might look:
+
+### 标题1.2
+
+Excepteur efficient emerging, minim veniam anim aute carefully curated Ginza conversation exquisite perfect nostrud nisi intricate Content. Qui  international first-class nulla ut. Punctual adipisicing, essential lovely queen tempor eiusmod irure. Exclusive izakaya charming Scandinavian impeccable aute quality of life soft power pariatur Melbourne occaecat discerning. Qui wardrobe aliquip, et Porter destination Toto remarkable officia Helsinki excepteur Basset hound. Zürich sleepy perfect consectetur.
+
+## 标题2
+
+Excepteur efficient emerging, minim veniam anim aute carefully curated Ginza conversation exquisite perfect nostrud nisi intricate Content. Qui  international first-class nulla ut. Punctual adipisicing, essential lovely queen tempor eiusmod irure. Exclusive izakaya charming Scandinavian impeccable aute quality of life soft power pariatur Melbourne occaecat discerning. Qui wardrobe aliquip, et Porter destination Toto remarkable officia Helsinki excepteur Basset hound. Zürich sleepy perfect consectetur.
+`;
+
 const WrittingReportEditor = () => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div className="col-span-2">
-        <Card className="h-[calc(100vh-7rem)] bg-gray-100">
+        <Card className="h-[calc(100vh-7rem)] bg-gray-100 overflow-y-auto">
           <CardHeader>
             <CardTitle className="font-bold text-2xl">
               Generate Report
@@ -119,13 +138,15 @@ const WrittingReportEditor = () => {
                 placeholder="Let's talk about your report ..."
                 className="bg-white"
               />
-              <Button>Generate</Button>
+              <Button>
+                <Link href="/report/editor">Send</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
       <div className="hidden md:block md:col-span-3">
-        <DynamicReportEditor />
+        <DynamicReportEditor value={value} />
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ const ReportTemplateCard = ({
     <Card>
       <CardContent>
         <div className="flex flex-col gap-2">
-          <div className="h-64 w-64 bg-gray-200 rounded-md"></div>
+          <div className="h-64 w-full bg-gray-200 rounded-md"></div>
           <div className="flex flex-col gap-2">
             <h3 className="text-lg font-bold">{name}</h3>
             <p className="text-sm text-muted-foreground">{description}</p>

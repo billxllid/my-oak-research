@@ -123,7 +123,7 @@ const ReportEditor = () => {
         </div>
       </div>
       <div className="hidden md:block md:col-span-3">
-        <Card className="h-[calc(100vh-7rem)] bg-gray-100">
+        <Card className="h-[calc(100vh-7rem)] bg-gray-100 overflow-y-auto">
           <CardHeader>
             <CardTitle className="font-bold text-2xl">
               Generate Report
@@ -179,7 +179,7 @@ const ReportEditor = () => {
                 className="bg-white"
               />
               <Button>
-                <Link href="/report/editor/writting">Writting</Link>
+                <Link href="/report/editor/writting">Send</Link>
               </Button>
             </div>
           </CardContent>
