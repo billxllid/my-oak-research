@@ -57,7 +57,7 @@ const menuItems = [
     items: [
       {
         title: "Settings",
-        url: "/follow/settings",
+        url: "/follow/settings/keyword",
         icon: Settings,
       },
       {
