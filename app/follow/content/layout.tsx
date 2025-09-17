@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import NewsCard from "./NewsCard";
+import NewsCard from "../../components/NewsCard";
 
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";

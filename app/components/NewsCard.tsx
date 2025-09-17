@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Globe, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface NewsCardProps {
+export interface NewsCardProps {
   title: string;
   summary: string;
   image?: string;
