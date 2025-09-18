@@ -30,6 +30,7 @@ import {
   PencilRuler,
   Box,
   Heart,
+  ScrollText,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -111,6 +112,18 @@ const menuItems = [
     title: "Settings",
     url: "/settings",
     icon: Settings,
+    items: [
+      {
+        title: "User",
+        url: "/settings/user",
+        icon: User2,
+      },
+      {
+        title: "Logging",
+        url: "/settings/logging",
+        icon: ScrollText,
+      },
+    ],
   },
 ];
 
