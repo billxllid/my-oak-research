@@ -31,6 +31,8 @@ import {
   Box,
   Heart,
   ScrollText,
+  Globe,
+  PencilLine,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -60,6 +62,16 @@ const menuItems = [
         title: "Settings",
         url: "/follow/settings/keyword",
         icon: Settings,
+      },
+      {
+        title: "Keywords",
+        url: "/follow/keywords",
+        icon: PencilLine,
+      },
+      {
+        title: "Sources",
+        url: "/follow/sources",
+        icon: Globe,
       },
       {
         title: "Content",
