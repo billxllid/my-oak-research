@@ -33,6 +33,7 @@ import {
   ScrollText,
   Globe,
   PencilLine,
+  MessageCircleQuestionMark,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -58,11 +59,11 @@ const menuItems = [
     url: "/follow",
     icon: Inbox,
     items: [
-      {
-        title: "Settings",
-        url: "/follow/settings/keyword",
-        icon: Settings,
-      },
+      // {
+      //   title: "Settings",
+      //   url: "/follow/settings/keyword",
+      //   icon: Settings,
+      // },
       {
         title: "Keywords",
         url: "/follow/keywords",
@@ -72,6 +73,11 @@ const menuItems = [
         title: "Sources",
         url: "/follow/sources",
         icon: Globe,
+      },
+      {
+        title: "Queries",
+        url: "/follow/queries",
+        icon: MessageCircleQuestionMark,
       },
       {
         title: "Content",

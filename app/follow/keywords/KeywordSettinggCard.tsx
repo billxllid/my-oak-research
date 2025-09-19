@@ -83,70 +83,7 @@ const KeywordSettinggCard = ({ keywords, categories }: Props) => {
               ))}
             </SelectContent>
           </Select>
-
-          <Dialog>
-            <form>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusIcon />
-                  Add Keyword
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Keyword</DialogTitle>
-                  <DialogDescription>
-                    Add a new keyword to your list.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4">
-                  <div className="grid gap-3">
-                    <Label htmlFor="keyword">Keyword</Label>
-                    <Input id="keyword" placeholder="Keyword" required />
-                  </div>
-                  <div className="grid gap-3">
-                    <Label htmlFor="category">Category</Label>
-                    <div id="category">
-                      <Select required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((category: Category) => (
-                            <SelectItem key={category.key} value={category.key}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="grid gap-3">
-                    <div className="flex justify-between items-center">
-                      <div className="grid gap-2">
-                        <Label htmlFor="derived">Derived</Label>
-                        <p className="text-sm text-muted-foreground">
-                          You can automatically derive keywords by AI.
-                        </p>
-                      </div>
-                      <Switch id="derived" />
-                    </div>
-                    <Textarea
-                      id="derived-keywords"
-                      placeholder="Derived keywords"
-                      defaultValue={`Derived 1; Derived 2; Derived 3; Derived 4;`}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button>Add</Button>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </form>
-          </Dialog>
+          <AddKeywordDialog categories={categories} />
         </div>
         <Table>
           <TableHeader>
@@ -198,6 +135,74 @@ const KeywordSettinggCard = ({ keywords, categories }: Props) => {
         </Table>
       </CardContent>
     </Card>
+  );
+};
+
+const AddKeywordDialog = ({ categories }: { categories: Category[] }) => {
+  return (
+    <Dialog>
+      <form>
+        <DialogTrigger asChild>
+          <Button>
+            <PlusIcon />
+            Add Keyword
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Keyword</DialogTitle>
+            <DialogDescription>
+              Add a new keyword to your list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-3">
+              <Label htmlFor="keyword">Keyword</Label>
+              <Input id="keyword" placeholder="Keyword" required />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="category">Category</Label>
+              <div id="category">
+                <Select required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category: Category) => (
+                      <SelectItem key={category.key} value={category.key}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-3">
+              <div className="flex justify-between items-center">
+                <div className="grid gap-2">
+                  <Label htmlFor="derived">Derived</Label>
+                  <p className="text-sm text-muted-foreground">
+                    You can automatically derive keywords by AI.
+                  </p>
+                </div>
+                <Switch id="derived" />
+              </div>
+              <Textarea
+                id="derived-keywords"
+                placeholder="Derived keywords"
+                defaultValue={`Derived 1; Derived 2; Derived 3; Derived 4;`}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button>Add</Button>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </form>
+    </Dialog>
   );
 };
 
