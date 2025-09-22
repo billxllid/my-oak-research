@@ -9,7 +9,7 @@ import ProxySettingCard from "./ProxySettingCard";
 const Sources = () => {
   return (
     <div>
-      <Tabs defaultValue="web-sites">
+      <Tabs defaultValue="web-sites" className="space-y-2">
         <TabsList>
           <TabsTrigger value="web-sites">Web Sites</TabsTrigger>
           <TabsTrigger value="social-media">Social Media</TabsTrigger>

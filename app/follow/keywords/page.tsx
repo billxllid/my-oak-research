@@ -97,7 +97,7 @@ const KeywordsPage = () => {
 
   return (
     <div>
-      <Tabs defaultValue="keywords">
+      <Tabs defaultValue="keywords" className="space-y-2">
         <TabsList>
           <TabsTrigger value="keywords">Keywords</TabsTrigger>
           <TabsTrigger value="categories">Categories</TabsTrigger>

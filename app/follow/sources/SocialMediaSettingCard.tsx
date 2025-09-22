@@ -76,12 +76,13 @@ const supportedSocialMedia: { [key: string]: SocialMedia } = {
   },
 };
 
+export const socialMedia: { id: string; api: SocialMedia; desc?: string }[] = [
+  { id: "1", api: supportedSocialMedia.twitter, desc: "My Twitter" },
+  { id: "2", api: supportedSocialMedia.facebook },
+  { id: "3", api: supportedSocialMedia.whatsapp },
+];
+
 const SocialMediaSettingCard = () => {
-  const socialMedia: { id: string; api: SocialMedia; desc?: string }[] = [
-    { id: "1", api: supportedSocialMedia.twitter, desc: "My Twitter" },
-    { id: "2", api: supportedSocialMedia.facebook },
-    { id: "3", api: supportedSocialMedia.whatsapp },
-  ];
   return (
     <Card>
       <CardHeader>
