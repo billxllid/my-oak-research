@@ -46,8 +46,15 @@ import { Category } from "./CategorySettingCard";
 export interface Keyword {
   id: string;
   name: string;
+  description?: string;
   category: Category;
-  derived: string[];
+  includes: string[];
+  excludes: string[];
+  synonyms: string[];
+  lang: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface Props {
@@ -90,8 +97,10 @@ const KeywordSettinggCard = ({ keywords, categories }: Props) => {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>Lang</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Derived</TableHead>
+              <TableHead>Includes</TableHead>
+              <TableHead>Excludes</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -100,16 +109,43 @@ const KeywordSettinggCard = ({ keywords, categories }: Props) => {
               <TableRow key={keyword.id}>
                 <TableCell>{keyword.id}</TableCell>
                 <TableCell>{keyword.name}</TableCell>
+                <TableCell>
+                  <Badge variant="outline">{keyword.lang}</Badge>
+                </TableCell>
                 <TableCell>{keyword.category.name}</TableCell>
                 <TableCell>
-                  <div className="flex flex-wrap gap-1 max-w-2xl">
-                    {keyword.derived.map((derived) => (
+                  <div className="flex flex-wrap gap-1 max-w-md">
+                    {keyword.includes.map((include) => (
                       <Badge
-                        key={derived}
+                        key={include}
                         variant="outline"
                         className="flex items-center gap-1"
                       >
-                        {derived}
+                        {include}
+                        <XIcon
+                          size={12}
+                          color="gray"
+                          className="cursor-pointer hover:text-red-500"
+                        />
+                      </Badge>
+                    ))}
+                    {keyword.synonyms.map((synonym) => (
+                      <Badge key={synonym} variant="secondary">
+                        {synonym}
+                        <XIcon
+                          size={12}
+                          color="gray"
+                          className="cursor-pointer hover:text-red-500"
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1 max-w-2xl">
+                    {keyword.excludes.map((exclude) => (
+                      <Badge key={exclude} variant="outline">
+                        {exclude}
                         <XIcon
                           size={12}
                           color="gray"
@@ -157,8 +193,8 @@ const AddKeywordDialog = ({ categories }: { categories: Category[] }) => {
           </DialogHeader>
           <div className="grid gap-4">
             <div className="grid gap-3">
-              <Label htmlFor="keyword">Keyword</Label>
-              <Input id="keyword" placeholder="Keyword" required />
+              <Label htmlFor="keyword">Name</Label>
+              <Input id="keyword" placeholder="Keyword Name" required />
             </div>
             <div className="grid gap-3">
               <Label htmlFor="category">Category</Label>
@@ -178,19 +214,39 @@ const AddKeywordDialog = ({ categories }: { categories: Category[] }) => {
               </div>
             </div>
             <div className="grid gap-3">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Description"
+                required
+                rows={3}
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="includes">Includes</Label>
+              <Textarea
+                id="includes"
+                placeholder="Includes"
+                required
+                rows={3}
+              />
               <div className="flex justify-between items-center">
                 <div className="grid gap-2">
-                  <Label htmlFor="derived">Derived</Label>
+                  <Label htmlFor="synonyms">Synonyms</Label>
                   <p className="text-sm text-muted-foreground">
-                    You can automatically derive keywords by AI.
+                    You can automatically add synonyms by AI.
                   </p>
                 </div>
-                <Switch id="derived" />
+                <Switch id="synonyms" />
               </div>
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="excludes">Excludes</Label>
               <Textarea
-                id="derived-keywords"
-                placeholder="Derived keywords"
-                defaultValue={`Derived 1; Derived 2; Derived 3; Derived 4;`}
+                id="excludes"
+                placeholder="Excludes"
+                required
+                rows={3}
               />
             </div>
           </div>
