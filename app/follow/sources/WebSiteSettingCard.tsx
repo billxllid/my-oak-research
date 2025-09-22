@@ -105,7 +105,11 @@ const WebSiteSettingCard = () => {
                 <TableCell>{webSite.id}</TableCell>
                 <TableCell>{webSite.label}</TableCell>
                 <TableCell>{webSite.desc}</TableCell>
-                <TableCell>{webSite.url}</TableCell>
+                <TableCell className="max-w-xs break-all whitespace-normal">
+                  <span className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">
+                    {webSite.url}
+                  </span>
+                </TableCell>
                 <TableCell>{webSite.networkEnvironment?.label}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
