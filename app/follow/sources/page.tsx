@@ -4,6 +4,7 @@ import WebSiteSettingCard from "./WebSiteSettingCard";
 import SocialMediaSettingCard from "./SocialMediaSettingCard";
 import DarknetSettingCard from "./DarknetSettingCard";
 import SearchEngineSettingCard from "./SearchEngineSettingCard";
+import ProxySettingCard from "./ProxySettingCard";
 
 const Sources = () => {
   return (
@@ -14,6 +15,7 @@ const Sources = () => {
           <TabsTrigger value="social-media">Social Media</TabsTrigger>
           <TabsTrigger value="darknet">Darknet</TabsTrigger>
           <TabsTrigger value="search-engines">Search Engines</TabsTrigger>
+          <TabsTrigger value="proxy">Proxy</TabsTrigger>
         </TabsList>
         <TabsContent value="web-sites">
           <WebSiteSettingCard />
@@ -26,6 +28,9 @@ const Sources = () => {
         </TabsContent>
         <TabsContent value="search-engines">
           <SearchEngineSettingCard />
+        </TabsContent>
+        <TabsContent value="proxy">
+          <ProxySettingCard />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { NetworkEnvironment } from "./NetworkEnvSettingCard";
+import { NetworkEnvironment } from "./ProxySettingCard";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { networkEnvironments } from "./NetworkEnvSettingCard";
+import { networkEnvironments } from "./ProxySettingCard";
 import {
   Dialog,
   DialogTrigger,
@@ -150,6 +150,9 @@ const SocialMediaSettingCard = () => {
 };
 
 const AddSocialMediaDialog = () => {
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedNetworkEnvironment, setSelectedNetworkEnvironment] =
+    useState<string>("");
   return (
     <Dialog>
       <form>
@@ -177,7 +180,11 @@ const AddSocialMediaDialog = () => {
             </div>
             <div className="grid gap-3">
               <Label htmlFor="socialMediaType">Type</Label>
-              <Select required>
+              <Select
+                required
+                value={selectedType}
+                onValueChange={setSelectedType}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
@@ -185,6 +192,58 @@ const AddSocialMediaDialog = () => {
                   <SelectItem value="twitter">Twitter</SelectItem>
                   <SelectItem value="facebook">Facebook</SelectItem>
                   <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                </SelectContent>
+              </Select>
+              {selectedType === "twitter" && (
+                <div className="grid gap-3">
+                  <Label htmlFor="twitter-api-key">Twitter API Key</Label>
+                  <Input
+                    id="twitter-api-key"
+                    placeholder="Twitter API Key"
+                    required
+                  />
+                </div>
+              )}
+              {selectedType === "facebook" && (
+                <div className="grid gap-3">
+                  <Label htmlFor="facebook-api-key">Facebook API Key</Label>
+                  <Input
+                    id="facebook-api-key"
+                    placeholder="Facebook API Key"
+                    required
+                  />
+                </div>
+              )}
+              {selectedType === "whatsapp" && (
+                <div className="grid gap-3">
+                  <Label htmlFor="whatsapp-api-key">WhatsApp API Key</Label>
+                  <Input
+                    id="whatsapp-api-key"
+                    placeholder="WhatsApp API Key"
+                    required
+                  />
+                </div>
+              )}
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="network-environment">Network Environment</Label>
+              <Select
+                required
+                value={selectedNetworkEnvironment}
+                onValueChange={setSelectedNetworkEnvironment}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a network environment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {networkEnvironments.map((networkEnvironment) => (
+                    <SelectItem
+                      key={networkEnvironment.id}
+                      value={networkEnvironment.id}
+                    >
+                      {networkEnvironment.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

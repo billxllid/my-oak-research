@@ -35,10 +35,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  NetworkEnvironment,
-  networkEnvironments,
-} from "./NetworkEnvSettingCard";
+import { NetworkEnvironment, networkEnvironments } from "./ProxySettingCard";
 
 interface WebSite {
   id: string;
