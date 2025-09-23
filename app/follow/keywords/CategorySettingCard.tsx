@@ -59,6 +59,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import ErrorMessage from "@/components/ErrorMessage";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Props {
   categories: Category[];
@@ -188,9 +189,20 @@ const EditCategoryDialog = ({
       },
       body,
     })
-      .then(() => {
+      .then((res) => {
+        const handleResponse = () => {
+          if (res.ok)
+            return toast.success(
+              category
+                ? "Category updated successfully"
+                : "Category added successfully"
+            );
+          return toast.error(
+            category ? "Failed to update category" : "Failed to add category"
+          );
+        };
         setOpen(false);
-        // 延迟刷新，等待 dialog 关闭动画完成
+        handleResponse();
         setTimeout(() => {
           router.refresh();
         }, 200);
@@ -264,12 +276,24 @@ const DeleteCategoryDialog = ({
     await fetch(`/api/follow/categories/${category.id}`, {
       method: "DELETE",
     })
-      .then(() => {
+      .then((res) => {
+        const handleResponse = () => {
+          if (res.ok) return toast.success("Category deleted successfully");
+          if (res.status === 409)
+            return toast.error(
+              "Category is in use by keywords; migrate or remove those first"
+            );
+          return toast.error("Failed to delete category");
+        };
+
+        handleResponse();
+
         setTimeout(() => {
           router.refresh();
         }, 200);
       })
       .catch((err) => {
+        toast.error("Failed to delete category");
         console.error(err);
       });
   };

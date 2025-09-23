@@ -5,6 +5,7 @@ import Navbar from "./Navbar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import Headbar from "./Headbar";
 import QueryClientProvider from "./QueryClientProvider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,8 +36,9 @@ export default function RootLayout({
           <SidebarProvider>
             <Navbar variant="inset" />
             <SidebarInset>
+              <Toaster richColors />
               <Headbar />
-              <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+              <main className="flex flex-1 flex-col gap-4 p-4">{children}</main>
             </SidebarInset>
           </SidebarProvider>
         </QueryClientProvider>
