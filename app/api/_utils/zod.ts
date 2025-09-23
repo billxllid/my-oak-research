@@ -3,13 +3,21 @@ import { z } from "zod";
 export const LangEnum = z.enum(["zh", "en", "ja", "auto"]).optional();
 
 export const CategoryCreateSchema = z.object({
-  name: z.string().min(1).max(64),
-  description: z.string().max(500).optional().nullable(),
+  name: z.string().min(1, "Name is required").max(64),
+  description: z
+    .string()
+    .max(500, "Description must be less than 500 characters")
+    .optional()
+    .nullable(),
 });
 
 export const CategoryUpdateSchema = z.object({
-  name: z.string().min(1).max(64).optional(),
-  description: z.string().max(500).optional().nullable(),
+  name: z.string().min(1, "Name is required").max(64).optional(),
+  description: z
+    .string()
+    .max(500, "Description must be less than 500 characters")
+    .optional()
+    .nullable(),
 });
 
 export const KeywordCreateSchema = z.object({

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -28,6 +28,17 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -39,10 +50,15 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Category } from "@/lib/generated/prisma";
-import { CategoryCreateSchema } from "@/app/api/_utils/zod";
+import {
+  CategoryCreateSchema,
+  CategoryUpdateSchema,
+} from "@/app/api/_utils/zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import ErrorMessage from "@/components/ErrorMessage";
+import { useRouter } from "next/navigation";
 
 interface Props {
   categories: Category[];
@@ -78,7 +94,14 @@ const CategorySettingCard = ({ categories }: Props) => {
               ))}
             </SelectContent>
           </Select>
-          <AddCategoryDialog />
+          <EditCategoryDialog
+            triggerButton={
+              <Button>
+                <PlusIcon />
+                Add Category
+              </Button>
+            }
+          />
         </div>
         <CategoryTable categories={categories} />
       </CardContent>
@@ -87,20 +110,6 @@ const CategorySettingCard = ({ categories }: Props) => {
 };
 
 const CategoryTable = ({ categories }: { categories: Category[] }) => {
-  const handleEdit = async (category: Category) => {
-    console.log("edit", category);
-  };
-
-  const handleDelete = async (category: Category) => {
-    await fetch(`/api/follow/categories/${category.id}`, {
-      method: "DELETE",
-    })
-      .then((res) => res.json())
-      .catch((err) => {
-        console.error(err);
-      });
-  };
-
   return (
     <Table>
       <TableHeader>
@@ -119,20 +128,22 @@ const CategoryTable = ({ categories }: { categories: Category[] }) => {
             <TableCell>{category.description || "-"}</TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleEdit(category)}
-                >
-                  <PencilIcon className="size-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDelete(category)}
-                >
-                  <TrashIcon className="size-3" />
-                </Button>
+                <EditCategoryDialog
+                  category={category}
+                  triggerButton={
+                    <Button size="sm" variant="outline">
+                      <PencilIcon className="size-3" />
+                    </Button>
+                  }
+                />
+                <DeleteCategoryDialog
+                  category={category}
+                  triggerButton={
+                    <Button size="sm" variant="outline">
+                      <TrashIcon className="size-3" />
+                    </Button>
+                  }
+                />
               </div>
             </TableCell>
           </TableRow>
@@ -142,42 +153,66 @@ const CategoryTable = ({ categories }: { categories: Category[] }) => {
   );
 };
 
-const AddCategoryDialog = () => {
-  const { register, handleSubmit } = useForm<
-    z.infer<typeof CategoryCreateSchema>
-  >({
-    resolver: zodResolver(CategoryCreateSchema),
+const EditCategoryDialog = ({
+  category,
+  triggerButton,
+}: {
+  category?: Category;
+  triggerButton: React.ReactNode;
+}) => {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const CategorySchema = category ? CategoryUpdateSchema : CategoryCreateSchema;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.infer<typeof CategorySchema>>({
+    resolver: zodResolver(CategorySchema),
     defaultValues: {
-      name: "",
-      description: "",
+      name: category?.name,
+      description: category?.description,
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof CategoryCreateSchema>) => {
-    await fetch("/api/follow/categories", {
-      method: "POST",
-      body: JSON.stringify(data),
+  const onSubmit = async (data: z.infer<typeof CategorySchema>) => {
+    const endpoint = category
+      ? `/api/follow/categories/${category.id}`
+      : "/api/follow/categories";
+    const method = category ? "PATCH" : "POST";
+    const body = category ? JSON.stringify(data) : JSON.stringify(data);
+    await fetch(endpoint, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body,
     })
-      .then((res) => res.json())
+      .then(() => {
+        setOpen(false);
+        // 延迟刷新，等待 dialog 关闭动画完成
+        setTimeout(() => {
+          router.refresh();
+        }, 200);
+      })
       .catch((err) => {
         console.error(err);
       });
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button>
-          <PlusIcon />
-          Add Category
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{triggerButton}</DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Category</DialogTitle>
+          <DialogTitle>
+            {category ? "Edit Category" : "Add Category"}
+          </DialogTitle>
           <DialogDescription>
-            Add a new category to your list.
+            {category
+              ? "Edit the category to your list."
+              : "Add a new category to your list."}
           </DialogDescription>
         </DialogHeader>
 
@@ -190,6 +225,7 @@ const AddCategoryDialog = () => {
               required
               {...register("name")}
             />
+            <ErrorMessage>{errors.name?.message}</ErrorMessage>
           </div>
 
           <div className="grid gap-3">
@@ -199,17 +235,62 @@ const AddCategoryDialog = () => {
               placeholder="Category Description"
               {...register("description")}
             />
+            <ErrorMessage>{errors.description?.message}</ErrorMessage>
           </div>
         </div>
 
         <DialogFooter>
-          <Button onClick={handleSubmit(onSubmit)}>Add</Button>
+          <Button onClick={handleSubmit(onSubmit)}>
+            {category ? "Edit" : "Add"}
+          </Button>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+};
+
+const DeleteCategoryDialog = ({
+  category,
+  triggerButton,
+}: {
+  category: Category;
+  triggerButton: React.ReactNode;
+}) => {
+  const router = useRouter();
+  const handleDelete = async (category: Category) => {
+    await fetch(`/api/follow/categories/${category.id}`, {
+      method: "DELETE",
+    })
+      .then(() => {
+        setTimeout(() => {
+          router.refresh();
+        }, 200);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>{triggerButton}</AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Category</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete `{category.name}` category?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={() => handleDelete(category)}>
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 
