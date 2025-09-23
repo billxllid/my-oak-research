@@ -13,3 +13,33 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  keywords  Keyword[]
+
+  @@unique([name])
+}
+
+model Keyword {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  lang        String?
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  includes String[]
+  excludes String[]
+  synonyms String[]
+  active   Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, categoryId])
+}

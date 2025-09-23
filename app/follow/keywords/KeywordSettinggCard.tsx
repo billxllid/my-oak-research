@@ -241,7 +241,7 @@ const AddKeywordDialog = ({ categories }: { categories: Category[] }) => {
               </div>
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="excludes">Excludes</Label>
+              <Label htmlFor="excludes">Excludes(Optional)</Label>
               <Textarea
                 id="excludes"
                 placeholder="Excludes"
