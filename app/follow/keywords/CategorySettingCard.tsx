@@ -29,7 +29,6 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
@@ -39,13 +38,11 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-
-export interface Category {
-  id: string;
-  key: string;
-  name: string;
-  description: string;
-}
+import { Category } from "@/lib/generated/prisma";
+import { CategoryCreateSchema } from "@/app/api/_utils/zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 interface Props {
   categories: Category[];
@@ -75,7 +72,7 @@ const CategorySettingCard = ({ categories }: Props) => {
             </SelectTrigger>
             <SelectContent>
               {categories.map((category: Category) => (
-                <SelectItem key={category.key} value={category.key}>
+                <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>
               ))}
@@ -83,82 +80,135 @@ const CategorySettingCard = ({ categories }: Props) => {
           </Select>
           <AddCategoryDialog />
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {categories.map((category: Category) => (
-              <TableRow key={category.id}>
-                <TableCell>{category.id}</TableCell>
-                <TableCell>{category.name}</TableCell>
-                <TableCell>{category.description}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline">
-                      <PencilIcon className="size-3" />
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <TrashIcon className="size-3" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <CategoryTable categories={categories} />
       </CardContent>
     </Card>
   );
 };
 
+const CategoryTable = ({ categories }: { categories: Category[] }) => {
+  const handleEdit = async (category: Category) => {
+    console.log("edit", category);
+  };
+
+  const handleDelete = async (category: Category) => {
+    await fetch(`/api/follow/categories/${category.id}`, {
+      method: "DELETE",
+    })
+      .then((res) => res.json())
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>ID</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead>Description</TableHead>
+          <TableHead>Action</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {categories.map((category, index) => (
+          <TableRow key={category.id}>
+            <TableCell>{index + 1}</TableCell>
+            <TableCell>{category.name}</TableCell>
+            <TableCell>{category.description || "-"}</TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleEdit(category)}
+                >
+                  <PencilIcon className="size-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDelete(category)}
+                >
+                  <TrashIcon className="size-3" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
+
 const AddCategoryDialog = () => {
+  const { register, handleSubmit } = useForm<
+    z.infer<typeof CategoryCreateSchema>
+  >({
+    resolver: zodResolver(CategoryCreateSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
+  const onSubmit = async (data: z.infer<typeof CategoryCreateSchema>) => {
+    await fetch("/api/follow/categories", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
   return (
     <Dialog>
-      <form>
-        <DialogTrigger asChild>
-          <Button>
-            <PlusIcon />
-            Add Category
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Category</DialogTitle>
-            <DialogDescription>
-              Add a new category to your list.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogTrigger asChild>
+        <Button>
+          <PlusIcon />
+          Add Category
+        </Button>
+      </DialogTrigger>
 
-          <div className="grid gap-4">
-            <div className="grid gap-3">
-              <Label htmlFor="category">Category Name</Label>
-              <Input id="category" placeholder="Category Name" required />
-            </div>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Category</DialogTitle>
+          <DialogDescription>
+            Add a new category to your list.
+          </DialogDescription>
+        </DialogHeader>
 
-            <div className="grid gap-3">
-              <Label htmlFor="category">Category Description</Label>
-              <Textarea
-                id="category"
-                placeholder="Category Description"
-                required
-              />
-            </div>
+        <div className="grid gap-4">
+          <div className="grid gap-3">
+            <Label htmlFor="category-name">Category Name</Label>
+            <Input
+              id="category-name"
+              placeholder="Category Name"
+              required
+              {...register("name")}
+            />
           </div>
 
-          <DialogFooter>
-            <Button>Add</Button>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </form>
+          <div className="grid gap-3">
+            <Label htmlFor="category-description">Category Description</Label>
+            <Textarea
+              id="category-description"
+              placeholder="Category Description"
+              {...register("description")}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={handleSubmit(onSubmit)}>Add</Button>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 };

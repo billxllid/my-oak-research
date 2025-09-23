@@ -11,10 +11,10 @@ import { Prisma } from "@/lib/generated/prisma";
 
 export async function PATCH(
   _: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const id = (await params).id;
     const body = await _.json();
     const parsed = CategoryUpdateSchema.safeParse(body);
     if (!parsed.success)
@@ -37,11 +37,14 @@ export async function PATCH(
 
 export async function DELETE(
   _: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
-    // 可选：阻止删除仍被使用的分类
+    const id = (await params).id;
+
+    const category = await prisma.category.findUnique({ where: { id } });
+    if (!category) return notFound("Category not found");
+
     const count = await prisma.keyword.count({ where: { categoryId: id } });
     if (count > 0)
       return conflict(

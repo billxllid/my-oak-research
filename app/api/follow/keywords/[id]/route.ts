@@ -19,10 +19,13 @@ function normalizeTokens(arr: string[] | undefined) {
     .filter((s) => (seen.has(s) ? false : (seen.add(s), true)));
 }
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  _: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const item = await prisma.keyword.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: { category: true },
     });
     if (!item) return notFound("Keyword not found");
@@ -34,7 +37,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await req.json();
@@ -43,7 +46,7 @@ export async function PATCH(
       return badRequest("Invalid keyword payload", parsed.error.flatten());
 
     const exists = await prisma.keyword.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
     });
     if (!exists) return notFound("Keyword not found");
 
@@ -64,7 +67,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.keyword.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         ...("name" in data ? { name: data.name } : {}),
         ...("description" in data
@@ -95,10 +98,10 @@ export async function PATCH(
 
 export async function DELETE(
   _: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await prisma.keyword.delete({ where: { id: params.id } });
+    await prisma.keyword.delete({ where: { id: (await params).id } });
     return json({ ok: true });
   } catch (e) {
     return serverError(e);

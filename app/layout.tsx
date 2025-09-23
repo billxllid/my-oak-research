@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "./Navbar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import Headbar from "./Headbar";
+import QueryClientProvider from "./QueryClientProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,13 +31,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SidebarProvider>
-          <Navbar variant="inset" />
-          <SidebarInset>
-            <Headbar />
-            <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
-          </SidebarInset>
-        </SidebarProvider>
+        <QueryClientProvider>
+          <SidebarProvider>
+            <Navbar variant="inset" />
+            <SidebarInset>
+              <Headbar />
+              <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+            </SidebarInset>
+          </SidebarProvider>
+        </QueryClientProvider>
       </body>
     </html>
   );

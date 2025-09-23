@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       return badRequest("Invalid category payload", parsed.error.flatten());
 
     const created = await prisma.category.create({
-      data: { name: parsed.data.name },
+      data: { name: parsed.data.name, description: parsed.data.description },
     });
     return json(created, 201);
   } catch (e) {

@@ -41,24 +41,15 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
-import { Category } from "./CategorySettingCard";
+import { Category } from "@/lib/generated/prisma";
+import { Prisma } from "@/lib/generated/prisma";
 
-export interface Keyword {
-  id: string;
-  name: string;
-  description?: string;
-  category: Category;
-  includes: string[];
-  excludes: string[];
-  synonyms: string[];
-  lang: string;
-  active: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+type KeywordWithCategory = Prisma.KeywordGetPayload<{
+  include: { category: true };
+}>;
 
 interface Props {
-  keywords: Keyword[];
+  keywords: KeywordWithCategory[];
   categories: Category[];
 }
 
@@ -84,7 +75,7 @@ const KeywordSettinggCard = ({ keywords, categories }: Props) => {
             </SelectTrigger>
             <SelectContent>
               {categories.map((category: Category) => (
-                <SelectItem key={category.key} value={category.key}>
+                <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>
               ))}
@@ -92,85 +83,91 @@ const KeywordSettinggCard = ({ keywords, categories }: Props) => {
           </Select>
           <AddKeywordDialog categories={categories} />
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Lang</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Includes</TableHead>
-              <TableHead>Excludes</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {keywords.map((keyword: Keyword) => (
-              <TableRow key={keyword.id}>
-                <TableCell>{keyword.id}</TableCell>
-                <TableCell>{keyword.name}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{keyword.lang}</Badge>
-                </TableCell>
-                <TableCell>{keyword.category.name}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1 max-w-md">
-                    {keyword.includes.map((include) => (
-                      <Badge
-                        key={include}
-                        variant="outline"
-                        className="flex items-center gap-1"
-                      >
-                        {include}
-                        <XIcon
-                          size={12}
-                          color="gray"
-                          className="cursor-pointer hover:text-red-500"
-                        />
-                      </Badge>
-                    ))}
-                    {keyword.synonyms.map((synonym) => (
-                      <Badge key={synonym} variant="secondary">
-                        {synonym}
-                        <XIcon
-                          size={12}
-                          color="gray"
-                          className="cursor-pointer hover:text-red-500"
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1 max-w-2xl">
-                    {keyword.excludes.map((exclude) => (
-                      <Badge key={exclude} variant="outline">
-                        {exclude}
-                        <XIcon
-                          size={12}
-                          color="gray"
-                          className="cursor-pointer hover:text-red-500"
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline">
-                      <PencilIcon className="size-3" />
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <TrashIcon className="size-3" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <KeywordsTable keywords={keywords} />
       </CardContent>
     </Card>
+  );
+};
+
+const KeywordsTable = ({ keywords }: { keywords: KeywordWithCategory[] }) => {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>ID</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead>Lang</TableHead>
+          <TableHead>Category</TableHead>
+          <TableHead>Includes</TableHead>
+          <TableHead>Excludes</TableHead>
+          <TableHead>Action</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {keywords.map((keyword, index) => (
+          <TableRow key={keyword.id}>
+            <TableCell>{index + 1}</TableCell>
+            <TableCell>{keyword.name}</TableCell>
+            <TableCell>
+              <Badge variant="outline">{keyword.lang}</Badge>
+            </TableCell>
+            <TableCell>{keyword.category?.name}</TableCell>
+            <TableCell>
+              <div className="flex flex-wrap gap-1 max-w-md">
+                {keyword.includes.map((include) => (
+                  <Badge
+                    key={include}
+                    variant="outline"
+                    className="flex items-center gap-1"
+                  >
+                    {include}
+                    <XIcon
+                      size={12}
+                      color="gray"
+                      className="cursor-pointer hover:text-red-500"
+                    />
+                  </Badge>
+                ))}
+                {keyword.synonyms.map((synonym) => (
+                  <Badge key={synonym} variant="secondary">
+                    {synonym}
+                    <XIcon
+                      size={12}
+                      color="gray"
+                      className="cursor-pointer hover:text-red-500"
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex flex-wrap gap-1 max-w-2xl">
+                {keyword.excludes.map((exclude) => (
+                  <Badge key={exclude} variant="outline">
+                    {exclude}
+                    <XIcon
+                      size={12}
+                      color="gray"
+                      className="cursor-pointer hover:text-red-500"
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline">
+                  <PencilIcon className="size-3" />
+                </Button>
+                <Button size="sm" variant="outline">
+                  <TrashIcon className="size-3" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
 
@@ -205,7 +202,7 @@ const AddKeywordDialog = ({ categories }: { categories: Category[] }) => {
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((category: Category) => (
-                      <SelectItem key={category.key} value={category.key}>
+                      <SelectItem key={category.id} value={category.id}>
                         {category.name}
                       </SelectItem>
                     ))}
