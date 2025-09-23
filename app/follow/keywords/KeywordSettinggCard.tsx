@@ -56,10 +56,11 @@ import { Category } from "@/lib/generated/prisma";
 import { Prisma } from "@/lib/generated/prisma";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { KeywordUpdateSchema, KeywordCreateSchema } from "@/app/api/_utils/zod";
+import ErrorMessage from "@/components/ErrorMessage";
 
 type KeywordWithCategory = Prisma.KeywordGetPayload<{
   include: { category: true };
@@ -86,6 +87,7 @@ const KeywordSettinggCard = ({ keywords, categories }: Props) => {
               icon={<Search size={16} />}
             />
           </div>
+
           <Select>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by category" />
@@ -98,11 +100,13 @@ const KeywordSettinggCard = ({ keywords, categories }: Props) => {
               ))}
             </SelectContent>
           </Select>
+
           <EditKeywordDialog
             categories={categories}
             triggerButton={
-              <Button size="sm" variant="outline">
+              <Button>
                 <PlusIcon className="size-3" />
+                Add Keyword
               </Button>
             }
           />
@@ -224,25 +228,28 @@ const EditKeywordDialog = ({
 }) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [enableAiExpand, setEnableAiExpand] = useState(false);
-  const KeywordSchema = keyword ? KeywordUpdateSchema : KeywordCreateSchema;
+
   const {
     register,
     handleSubmit,
+    control,
+    watch,
     formState: { errors },
-  } = useForm<z.infer<typeof KeywordSchema>>({
-    resolver: zodResolver(KeywordSchema),
+  } = useForm({
+    resolver: zodResolver(keyword ? KeywordUpdateSchema : KeywordCreateSchema),
     defaultValues: {
-      name: keyword?.name,
-      categoryId: keyword?.category?.id,
-      description: keyword?.description,
-      includes: keyword?.includes,
-      synonyms: keyword?.synonyms,
-      excludes: keyword?.excludes,
+      name: keyword?.name || "",
+      categoryId: keyword?.category?.id || undefined,
+      description: keyword?.description || "",
+      includes: keyword?.includes || [],
+      synonyms: keyword?.synonyms || [],
+      excludes: keyword?.excludes || [],
+      enableAiExpand: keyword?.enableAiExpand || false,
     },
   });
-  const onSubmit = async (data: z.infer<typeof KeywordSchema>) => {
-    console.log(data);
+
+  const enableAiExpand = watch("enableAiExpand");
+  const onSubmit = async (data: any) => {
     const endpoint = keyword
       ? `/api/follow/keywords/${keyword.id}`
       : "/api/follow/keywords";
@@ -285,56 +292,61 @@ const EditKeywordDialog = ({
               : "Add a new keyword to your list."}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
+
+        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid gap-3">
             <Label htmlFor="keyword">Name</Label>
             <Input
               id="keyword"
               placeholder="Keyword Name"
-              required
               {...register("name")}
             />
+            <ErrorMessage>{errors.name?.message}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="category">Category</Label>
-            <div id="category">
-              <Select
-                required
-                value={keyword?.category?.id}
-                {...register("categoryId")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category: Category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Controller
+              name="categoryId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value ?? undefined}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category: Category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <ErrorMessage>{errors.categoryId?.message}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               placeholder="Description"
-              required
               rows={3}
               {...register("description")}
             />
+            <ErrorMessage>{errors.description?.message}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="includes">Includes</Label>
             <Textarea
               id="includes"
               placeholder="Includes"
-              required
               rows={3}
               {...register("includes")}
             />
+            <ErrorMessage>{errors.includes?.message}</ErrorMessage>
             <div className="flex justify-between items-center">
               <div className="grid gap-2">
                 <Label htmlFor="synonyms">Synonyms</Label>
@@ -342,21 +354,27 @@ const EditKeywordDialog = ({
                   You can automatically add synonyms by AI.
                 </p>
               </div>
-              <Switch
-                id="synonyms"
-                {...register("enableAiExpand")}
-                checked={enableAiExpand}
-                onCheckedChange={setEnableAiExpand}
+              <Controller
+                name="enableAiExpand"
+                control={control}
+                render={({ field }) => (
+                  <Switch
+                    id="synonyms"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                )}
               />
             </div>
-            {/* TODO：修改为多数据 */}
             {enableAiExpand && (
-              <Textarea
-                id="synonyms"
-                {...register("synonyms")}
-                placeholder="AI Synonyms"
-                readOnly
-              />
+              <div className="grid gap-3">
+                <Textarea
+                  id="synonyms"
+                  {...register("synonyms")}
+                  placeholder="AI Synonyms"
+                />
+                <ErrorMessage>{errors.synonyms?.message}</ErrorMessage>
+              </div>
             )}
           </div>
           <div className="grid gap-3">
@@ -364,20 +382,21 @@ const EditKeywordDialog = ({
             <Textarea
               id="excludes"
               placeholder="Excludes"
-              required
               rows={3}
               {...register("excludes")}
             />
+            <ErrorMessage>{errors.excludes?.message}</ErrorMessage>
           </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={handleSubmit(onSubmit)}>
-            {keyword ? "Edit" : "Add"}
-          </Button>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-        </DialogFooter>
+
+          <DialogFooter>
+            <Button type="submit">{keyword ? "Edit" : "Add"}</Button>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
