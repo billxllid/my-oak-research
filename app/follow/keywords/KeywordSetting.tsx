@@ -1,13 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -51,7 +44,6 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
 import { Category } from "@/lib/generated/prisma";
 import { Prisma } from "@/lib/generated/prisma";
 import { useRouter } from "next/navigation";
@@ -61,6 +53,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { KeywordUpdateSchema, KeywordCreateSchema } from "@/app/api/_utils/zod";
 import ErrorMessage from "@/components/ErrorMessage";
+import { SettingCard } from "@/components/SettingCard";
+import { SettingDeleteAlertDialog } from "@/components/SettingDeleteAlertDialog";
 
 type KeywordWithCategory = Prisma.KeywordGetPayload<{
   include: { category: true };
@@ -73,47 +67,37 @@ interface Props {
 
 const KeywordSettinggCard = ({ keywords, categories }: Props) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Manage Keywords</CardTitle>
-        <CardDescription>You can manage your keywords here.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4 mb-4">
-          <div className="relative flex-1">
-            <Input
-              placeholder="Search keywords..."
-              className="pl-9 bg-muted border-none"
-              icon={<Search size={16} />}
-            />
-          </div>
-
-          <Select>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category: Category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <EditKeywordDialog
-            categories={categories}
-            triggerButton={
-              <Button>
-                <PlusIcon className="size-3" />
-                Add Keyword
-              </Button>
-            }
-          />
-        </div>
-        <KeywordsTable keywords={keywords} categories={categories} />
-      </CardContent>
-    </Card>
+    <SettingCard
+      title="Manage Keywords"
+      description="You can manage your keywords here."
+      buttonComponent={
+        <EditKeywordDialog
+          categories={categories}
+          triggerButton={
+            <Button>
+              <PlusIcon className="size-3" />
+              Add Keyword
+            </Button>
+          }
+        />
+      }
+      filterComponent={
+        <Select>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category: Category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      }
+    >
+      <KeywordsTable keywords={keywords} categories={categories} />
+    </SettingCard>
   );
 };
 
@@ -124,7 +108,6 @@ const KeywordsTable = ({
   keywords: KeywordWithCategory[];
   categories: Category[];
 }) => {
-  const router = useRouter();
   return (
     <Table>
       <TableHeader>
@@ -249,7 +232,9 @@ const EditKeywordDialog = ({
   });
 
   const enableAiExpand = watch("enableAiExpand");
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (
+    data: z.infer<typeof KeywordUpdateSchema | typeof KeywordCreateSchema>
+  ) => {
     const endpoint = keyword
       ? `/api/follow/keywords/${keyword.id}`
       : "/api/follow/keywords";
@@ -432,23 +417,12 @@ const DeleteKeywordDialog = ({
       });
   };
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>{triggerButton}</AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete Keyword</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to delete `{keyword.name}` keyword?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => handleDelete(keyword)}>
-            Delete
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <SettingDeleteAlertDialog
+      triggerButton={triggerButton}
+      title="Delete Keyword"
+      description={`Are you sure you want to delete ${keyword.name} keyword?`}
+      onDelete={() => handleDelete(keyword)}
+    />
   );
 };
 

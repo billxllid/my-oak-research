@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import KeywordSettinggCard from "./KeywordSettinggCard";
-import CategorySettingCard from "./CategorySettingCard";
+import KeywordSettinggCard from "./KeywordSetting";
+import CategorySettingCard from "./CategorySetting";
 import { Category, Prisma } from "@/lib/generated/prisma";
 import prisma from "@/lib/prisma";
 

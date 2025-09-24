@@ -27,7 +27,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Keyword } from "../keywords/KeywordSettinggCard";
+import { Keyword } from "../keywords/KeywordSetting";
 import { socialMedia } from "../sources/SocialMediaSettingCard";
 
 interface Query {
