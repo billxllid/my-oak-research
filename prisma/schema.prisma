@@ -47,30 +47,186 @@ model Keyword {
 }
 
 enum SourceType {
-  RSS
-  RSSHUB
-  REDDIT
-  TELEGRAM
-  X
+  WEB
+  DARKNET
+  SEARCH_ENGINE
+  SOCIAL_MEDIA
+}
+
+enum CrawlerEngine {
+  FETCH // node-fetch/undici
+  CHEERIO // 轻量解析
+  PLAYWRIGHT // 有头/无头浏览器渲染
+  PUPPETEER
   CUSTOM
+}
+
+enum ProxyType {
+  HTTP
+  HTTPS
+  SOCKS4
+  SOCKS5
+  TOR // 语义上的 Tor（底层通常也是 SOCKS5）
+}
+
+enum SearchEngineKind {
+  GOOGLE
+  BING
+  DDG
+  SEARXNG
+  CUSTOM
+}
+
+enum SocialPlatform {
+  X
+  TELEGRAM
+  REDDIT
+}
+
+model Proxy {
+  id        String    @id @default(cuid())
+  name      String
+  type      ProxyType
+  // 建议统一 URL 形态保存，包含认证：scheme://user:pass@host:port
+  url       String
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // 反向引用
+  sources          Source[]
+  // 某些配置表也可能有 override：
+  darknetOverrides DarknetSourceConfig[] // 可选
+  webOverrides     WebSourceConfig[] // 可选
+  socialOverrides  SocialMediaSourceConfig[] // 可选
+}
+
+model Credential {
+  id        String   @id @default(cuid())
+  name      String
+  // 分类标签（便于审计/过滤）
+  kind      String // e.g. "search-api", "x-oauth", "telegram-bot"
+  // 建议密文或 KMS/vault 引用；此处示例用 Json 承载（生产可改成外部密管）
+  data      Json // { apiKey: "...", bearerToken: "...", ... }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 反向引用
+  sources Source[]
+
+  socialOverrides SocialMediaSourceConfig[] // 可选
+  searchOverrides SearchEngineSourceConfig[] // 可选
 }
 
 model Source {
   id            String     @id @default(cuid())
   name          String
   type          SourceType
-  url           String?
-  // 自由配置信息（不同类型的必要字段放这里）
-  config        Json?
-  headers       Json?
-  auth          Json?
-  rateLimit     Int? // 每分钟请求上限
   active        Boolean    @default(true)
+  rateLimit     Int? // req/min
   lastFetchedAt DateTime?
-  lastStatus    String? // 最近一次测试/抓取状态说明
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  lastStatus    String?
+
+  // 通用：若来源级别就配了代理/凭据（各 config 可局部覆盖）
+  proxyId String?
+  proxy   Proxy?  @relation(fields: [proxyId], references: [id])
+
+  credentialId String?
+  credential   Credential? @relation(fields: [credentialId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 1:1 configs（按类型存在其一）
+  web     WebSourceConfig?
+  darknet DarknetSourceConfig?
+  search  SearchEngineSourceConfig?
+  social  SocialMediaSourceConfig?
 
   @@unique([name])
   @@index([type])
+}
+
+model WebSourceConfig {
+  sourceId String @id
+  source   Source @relation(fields: [sourceId], references: [id])
+
+  url           String // 必填
+  headers       Json? // { "User-Agent": "...", ... }
+  crawlerEngine CrawlerEngine @default(FETCH)
+  // 抓取/解析策略：是否渲染、分页规则、选择器等
+  render        Boolean       @default(false)
+  parseRules    Json? // { listSelector: "...", title: "...", content: "...", nextSelector: "...", ... }
+  robotsRespect Boolean       @default(true)
+
+  // 可覆盖 Source 上的代理
+  proxyId String?
+  proxy   Proxy?  @relation(fields: [proxyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DarknetSourceConfig {
+  sourceId String @id
+  source   Source @relation(fields: [sourceId], references: [id])
+
+  url           String // .onion 等
+  headers       Json?
+  crawlerEngine CrawlerEngine @default(FETCH)
+
+  // Darknet 通常强制使用代理（TOR/SOCKS5）
+  proxyId String // REQUIRED
+  proxy   Proxy  @relation(fields: [proxyId], references: [id])
+
+  render     Boolean  @default(false)
+  parseRules Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model SearchEngineSourceConfig {
+  sourceId String @id
+  source   Source @relation(fields: [sourceId], references: [id])
+
+  engine      SearchEngineKind
+  // 标准字段
+  query       String
+  region      String? // "us", "tw", ...
+  lang        String? // "en", "zh", ...
+  // API 调用端点（某些场景用自建 SearXNG 或第三方 API）
+  apiEndpoint String?
+  // 透传额外参数（时间窗、结果数、safe mode 等）
+  options     Json? // { timeRange: "7d", num: 50, safe: "active", ... }
+
+  // 覆盖凭据（优先级：config > source）
+  credentialId String?
+  credential   Credential? @relation(fields: [credentialId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SocialMediaSourceConfig {
+  sourceId String @id
+  source   Source @relation(fields: [sourceId], references: [id])
+
+  platform SocialPlatform
+
+  // 为减少多列空值，这里用 Json 承载平台特定字段：
+  // X: { user?: "...", listId?: "...", query?: "..." }
+  // Telegram: { channel: "@xxx" | "12345", mode?: "history|updates" }
+  // Reddit: { subreddit: "xxx", sort?: "hot|new|top" }
+  config Json
+
+  // API / token 等（优先级：config > source）
+  credentialId String?
+  credential   Credential? @relation(fields: [credentialId], references: [id])
+
+  // 某些平台也允许代理覆盖（比如地区限制）
+  proxyId String?
+  proxy   Proxy?  @relation(fields: [proxyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
