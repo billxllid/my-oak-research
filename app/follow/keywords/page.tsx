@@ -21,20 +21,18 @@ const KeywordsPage = async () => {
     },
   });
   return (
-    <div>
-      <Tabs defaultValue="keywords" className="space-y-2">
-        <TabsList>
-          <TabsTrigger value="keywords">Keywords</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
-        </TabsList>
-        <TabsContent value="keywords">
-          <KeywordSettinggCard keywords={keywords} categories={categories} />
-        </TabsContent>
-        <TabsContent value="categories">
-          <CategorySettingCard categories={categories} />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <Tabs defaultValue="keywords" className="space-y-2">
+      <TabsList>
+        <TabsTrigger value="keywords">Keywords</TabsTrigger>
+        <TabsTrigger value="categories">Categories</TabsTrigger>
+      </TabsList>
+      <TabsContent value="keywords">
+        <KeywordSettinggCard keywords={keywords} categories={categories} />
+      </TabsContent>
+      <TabsContent value="categories">
+        <CategorySettingCard categories={categories} />
+      </TabsContent>
+    </Tabs>
   );
 };
 

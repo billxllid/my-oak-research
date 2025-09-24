@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export const LangEnum = z.enum(["zh", "en", "ja", "auto"]).optional().default("auto");
+export const LangEnum = z
+  .enum(["zh", "en", "ja", "auto"])
+  .optional()
+  .default("auto");
 
 export const CategoryCreateSchema = z.object({
   name: z.string().min(1, "Name is required").max(64),
@@ -20,7 +23,7 @@ export const CategoryUpdateSchema = z.object({
     .nullable(),
 });
 
-const SPLIT_RE = /[,\n\r，、;；\t ]+/g;
+const SPLIT_RE = /[,\n\r，、;；\t]+/g;
 
 function toStringArray(input: unknown): string[] {
   if (Array.isArray(input)) {
@@ -28,7 +31,10 @@ function toStringArray(input: unknown): string[] {
   }
   const raw = String(input ?? "").trim();
   if (!raw) return [];
-  return raw.split(SPLIT_RE).map((s) => s.trim()).filter(Boolean);
+  return raw
+    .split(SPLIT_RE)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 function uniq(arr: string[]) {
@@ -47,7 +53,10 @@ function delimitedStringArray({
   minItems?: number;
 }) {
   return z
-    .preprocess((val) => toStringArray(val), z.array(z.string().min(itemMin).max(itemMax)))
+    .preprocess(
+      (val) => toStringArray(val),
+      z.array(z.string().min(itemMin).max(itemMax))
+    )
     .transform(uniq)
     .refine((arr) => arr.length >= minItems, {
       message: `Must have at least ${minItems} items`,
@@ -55,18 +64,26 @@ function delimitedStringArray({
     .refine((arr) => arr.length <= totalMax, {
       message: `Must be less than ${totalMax} items`,
     })
-    .default([])
+    .default([]);
 }
 
 export const KeywordCreateSchema = z.object({
   name: z.string().min(1, "Name is required").max(64),
-  description: z.string().max(500, "Description must be less than 500 characters").optional().nullable(),
+  description: z
+    .string()
+    .max(500, "Description must be less than 500 characters")
+    .optional()
+    .nullable(),
   lang: LangEnum,
   categoryId: z.string().optional().nullable(),
   includes: delimitedStringArray({ minItems: 1, itemMax: 40, totalMax: 200 }),
   excludes: delimitedStringArray({ minItems: 0, itemMax: 40, totalMax: 200 }),
   enableAiExpand: z.boolean().optional().default(false),
-  synonyms: delimitedStringArray({ minItems: 0, itemMax: 40, totalMax: 400 }).optional(),
+  synonyms: delimitedStringArray({
+    minItems: 0,
+    itemMax: 40,
+    totalMax: 400,
+  }).optional(),
   active: z.boolean().optional().default(true),
 });
 
