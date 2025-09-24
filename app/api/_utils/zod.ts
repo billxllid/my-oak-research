@@ -99,3 +99,93 @@ export const KeywordQuerySchema = z.object({
 });
 
 export type KeywordQuery = z.infer<typeof KeywordQuerySchema>;
+
+export const SourceTypeEnum = z.enum([
+  "RSS",
+  "RSSHUB",
+  "REDDIT",
+  "TELEGRAM",
+  "X",
+  "CUSTOM",
+]);
+
+// 为不同类型的必填项做条件校验
+export const RSSLike = z.object({ url: z.string().url("Invalid URL") });
+export const RedditCfg = z.object({
+  subreddit: z.string().min(1),
+  sort: z.enum(["hot", "new", "top"]).default("hot").optional(),
+});
+export const TelegramCfg = z.object({
+  channel: z.string().min(1), // e.g. @xxx 或数字ID
+  apiToken: z.string().min(1).optional(), // 若用bot拉取
+});
+export const XCfg = z
+  .object({
+    listId: z.string().optional(),
+    user: z.string().optional(),
+    query: z.string().optional(),
+    bearerToken: z.string().optional(),
+  })
+  .refine((v) => v.listId || v.user || v.query, {
+    message: "Provide at least one of listId/user/query",
+  });
+
+export const SourceCreateSchema = z
+  .object({
+    name: z.string().min(1).max(64),
+    type: SourceTypeEnum,
+    url: z.string().url().optional().nullable(),
+    config: z.record(z.string(), z.any()).optional().nullable(),
+    headers: z.record(z.string(), z.any()).optional().nullable(),
+    auth: z.record(z.string(), z.any()).optional().nullable(),
+    rateLimit: z.number().int().min(1).max(600).optional().nullable(),
+    active: z.boolean().optional().default(true),
+    lastStatus: z.string().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    switch (data.type) {
+      case "RSS":
+      case "RSSHUB": {
+        const r = RSSLike.safeParse({ url: data.url });
+        if (!r.success)
+          r.error.issues.forEach((i) => ctx.addIssue(i.toString()));
+        break;
+      }
+      case "REDDIT": {
+        const r = RedditCfg.safeParse(data.config);
+        if (!r.success)
+          r.error.issues.forEach((i) => ctx.addIssue(i.toString()));
+        break;
+      }
+      case "TELEGRAM": {
+        const r = TelegramCfg.safeParse(data.config);
+        if (!r.success)
+          r.error.issues.forEach((i) => ctx.addIssue(i.toString()));
+        break;
+      }
+      case "X": {
+        const r = XCfg.safeParse(data.config);
+        if (!r.success)
+          r.error.issues.forEach((i) => ctx.addIssue(i.toString()));
+        break;
+      }
+      case "CUSTOM": {
+        if (!data.url && !data.config)
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Provide at least url or config for CUSTOM",
+          });
+        break;
+      }
+    }
+  });
+
+export const SourceUpdateSchema = SourceCreateSchema.partial();
+
+export const SourceQuerySchema = z.object({
+  q: z.string().optional(),
+  type: SourceTypeEnum.optional(),
+  active: z.enum(["true", "false"]).optional(),
+  page: z.coerce.number().min(1).default(1),
+  pageSize: z.coerce.number().min(1).max(100).default(20),
+});

@@ -45,3 +45,32 @@ model Keyword {
 
   @@unique([name])
 }
+
+enum SourceType {
+  RSS
+  RSSHUB
+  REDDIT
+  TELEGRAM
+  X
+  CUSTOM
+}
+
+model Source {
+  id            String     @id @default(cuid())
+  name          String
+  type          SourceType
+  url           String?
+  // 自由配置信息（不同类型的必要字段放这里）
+  config        Json?
+  headers       Json?
+  auth          Json?
+  rateLimit     Int? // 每分钟请求上限
+  active        Boolean    @default(true)
+  lastFetchedAt DateTime?
+  lastStatus    String? // 最近一次测试/抓取状态说明
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@unique([name])
+  @@index([type])
+}
