@@ -8,6 +8,7 @@ import {
 } from "@/app/api/_utils/http";
 import { KeywordUpdateSchema } from "@/app/api/_utils/zod";
 import { Prisma } from "@/lib/generated/prisma";
+import { z } from "zod";
 
 function normalizeTokens(arr: string[] | undefined) {
   if (!arr) return undefined;
@@ -43,7 +44,10 @@ export async function PATCH(
     const body = await req.json();
     const parsed = KeywordUpdateSchema.safeParse(body);
     if (!parsed.success)
-      return badRequest("Invalid keyword payload", parsed.error.flatten());
+      return badRequest(
+        "Invalid keyword payload",
+        z.flattenError(parsed.error)
+      );
 
     const exists = await prisma.keyword.findUnique({
       where: { id: (await params).id },

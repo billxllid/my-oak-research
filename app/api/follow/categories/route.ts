@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { json, badRequest, conflict, serverError } from "@/app/api/_utils/http";
 import { CategoryCreateSchema } from "@/app/api/_utils/zod";
 import { Prisma } from "@/lib/generated/prisma";
+import { z } from "zod";
 
 export async function GET() {
   try {
@@ -17,7 +18,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = CategoryCreateSchema.safeParse(body);
     if (!parsed.success)
-      return badRequest("Invalid category payload", parsed.error.flatten());
+      return badRequest(
+        "Invalid category payload",
+        z.flattenError(parsed.error)
+      );
 
     const created = await prisma.category.create({
       data: { name: parsed.data.name, description: parsed.data.description },

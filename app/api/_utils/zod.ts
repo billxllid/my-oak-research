@@ -25,6 +25,9 @@ export const CategoryUpdateSchema = z.object({
 
 const SPLIT_RE = /[,\n\r，、;；\t]+/g;
 
+const cuid = z.cuid();
+const cuidOpt = z.cuid().optional().nullable();
+
 function toStringArray(input: unknown): string[] {
   if (Array.isArray(input)) {
     return input.map((x) => String(x).trim()).filter(Boolean);
@@ -75,7 +78,7 @@ export const KeywordCreateSchema = z.object({
     .optional()
     .nullable(),
   lang: LangEnum,
-  categoryId: z.string().optional().nullable(),
+  categoryId: cuidOpt,
   includes: delimitedStringArray({ minItems: 1, itemMax: 40, totalMax: 200 }),
   excludes: delimitedStringArray({ minItems: 0, itemMax: 40, totalMax: 200 }),
   enableAiExpand: z.boolean().optional().default(false),
@@ -91,8 +94,8 @@ export const KeywordUpdateSchema = KeywordCreateSchema.partial();
 
 export const KeywordQuerySchema = z.object({
   q: z.string().optional(),
-  categoryId: z.string().cuid().optional(),
-  lang: z.enum(["zh", "en", "ja", "auto"]).optional(),
+  categoryId: cuidOpt,
+  lang: LangEnum,
   active: z.enum(["true", "false"]).optional(),
   page: z.coerce.number().min(1).default(1),
   pageSize: z.coerce.number().min(1).max(100).default(20),
@@ -101,86 +104,142 @@ export const KeywordQuerySchema = z.object({
 export type KeywordQuery = z.infer<typeof KeywordQuerySchema>;
 
 export const SourceTypeEnum = z.enum([
-  "RSS",
-  "RSSHUB",
-  "REDDIT",
-  "TELEGRAM",
-  "X",
+  "WEB",
+  "DARKNET",
+  "SEARCH_ENGINE",
+  "SOCIAL_MEDIA",
+]);
+export const CrawlerEngineEnum = z.enum([
+  "FETCH",
+  "CHEERIO",
+  "PLAYWRIGHT",
+  "PUPPETEER",
   "CUSTOM",
 ]);
+export const SearchEngineKindEnum = z.enum([
+  "GOOGLE",
+  "BING",
+  "DDG",
+  "SEARXNG",
+  "CUSTOM",
+]);
+export const SocialPlatformEnum = z.enum(["X", "TELEGRAM", "REDDIT"]);
 
-// 为不同类型的必填项做条件校验
-export const RSSLike = z.object({ url: z.string().url("Invalid URL") });
-export const RedditCfg = z.object({
-  subreddit: z.string().min(1),
-  sort: z.enum(["hot", "new", "top"]).default("hot").optional(),
+const WebConfigInput = z.object({
+  url: z.url(),
+  headers: z.record(z.string(), z.string()).optional().nullable(),
+  crawlerEngine: CrawlerEngineEnum.optional().default("FETCH"),
+  render: z.boolean().optional().default(false),
+  parseRules: z.record(z.string(), z.any()).optional().nullable(),
+  robotsRespect: z.boolean().optional().default(true),
+  proxyId: cuidOpt,
 });
-export const TelegramCfg = z.object({
-  channel: z.string().min(1), // e.g. @xxx 或数字ID
-  apiToken: z.string().min(1).optional(), // 若用bot拉取
+
+const DarknetConfigInput = z.object({
+  url: z.string().min(1), // .onion 也可能不是严格的 url()，放宽
+  headers: z.record(z.string(), z.string()).optional().nullable(),
+  crawlerEngine: CrawlerEngineEnum.optional().default("FETCH"),
+  // Darknet 通常强制使用代理（TOR/SOCKS5）
+  proxyId: cuid,
+  render: z.boolean().optional().default(false),
+  parseRules: z.record(z.string(), z.any()).optional().nullable(),
 });
-export const XCfg = z
-  .object({
-    listId: z.string().optional(),
-    user: z.string().optional(),
-    query: z.string().optional(),
-    bearerToken: z.string().optional(),
-  })
-  .refine((v) => v.listId || v.user || v.query, {
-    message: "Provide at least one of listId/user/query",
-  });
 
-export const SourceCreateSchema = z
-  .object({
-    name: z.string().min(1).max(64),
-    type: SourceTypeEnum,
-    url: z.string().url().optional().nullable(),
-    config: z.record(z.string(), z.any()).optional().nullable(),
-    headers: z.record(z.string(), z.any()).optional().nullable(),
-    auth: z.record(z.string(), z.any()).optional().nullable(),
-    rateLimit: z.number().int().min(1).max(600).optional().nullable(),
-    active: z.boolean().optional().default(true),
-    lastStatus: z.string().optional().nullable(),
-  })
-  .superRefine((data, ctx) => {
-    switch (data.type) {
-      case "RSS":
-      case "RSSHUB": {
-        const r = RSSLike.safeParse({ url: data.url });
-        if (!r.success)
-          r.error.issues.forEach((i) => ctx.addIssue(i.toString()));
-        break;
-      }
-      case "REDDIT": {
-        const r = RedditCfg.safeParse(data.config);
-        if (!r.success)
-          r.error.issues.forEach((i) => ctx.addIssue(i.toString()));
-        break;
-      }
-      case "TELEGRAM": {
-        const r = TelegramCfg.safeParse(data.config);
-        if (!r.success)
-          r.error.issues.forEach((i) => ctx.addIssue(i.toString()));
-        break;
-      }
-      case "X": {
-        const r = XCfg.safeParse(data.config);
-        if (!r.success)
-          r.error.issues.forEach((i) => ctx.addIssue(i.toString()));
-        break;
-      }
-      case "CUSTOM": {
-        if (!data.url && !data.config)
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Provide at least url or config for CUSTOM",
-          });
-        break;
-      }
-    }
-  });
+const SearchEngineConfigInput = z.object({
+  engine: SearchEngineKindEnum,
+  query: z.string().min(1),
+  region: z.string().optional().nullable(),
+  lang: LangEnum,
+  apiEndpoint: z.string().url().optional().nullable(),
+  options: z.record(z.string(), z.any()).optional().nullable(),
+  credentialId: cuidOpt,
+});
 
-export const SourceUpdateSchema = SourceCreateSchema.partial();
+const SocialConfigByPlatform = z.discriminatedUnion("platform", [
+  z.object({
+    platform: z.literal("X"),
+    config: z
+      .object({
+        user: z.string().optional(),
+        listId: z.string().optional(),
+        query: z.string().optional(),
+      })
+      .refine((v) => v.user || v.listId || v.query, {
+        message: "X: provide at least one of user/listId/query",
+      }),
+    credentialId: cuidOpt,
+    proxyId: cuidOpt,
+  }),
+  z.object({
+    platform: z.literal("TELEGRAM"),
+    config: z.object({
+      channel: z.string().min(1), // @xxx 或数字id
+      mode: z.enum(["history", "updates"]).optional(),
+    }),
+    credentialId: cuidOpt,
+    proxyId: cuidOpt,
+  }),
+  z.object({
+    platform: z.literal("REDDIT"),
+    config: z.object({
+      subreddit: z.string().min(1),
+      sort: z.enum(["hot", "new", "top"]).optional(),
+    }),
+    credentialId: cuidOpt,
+    proxyId: cuidOpt,
+  }),
+]);
+
+export const SourceBaseCreate = z.object({
+  name: z.string().min(1).max(64),
+  type: SourceTypeEnum,
+  active: z.boolean().optional().default(true),
+  rateLimit: z.number().int().min(1).max(600).optional().nullable(),
+  proxyId: cuidOpt,
+  credentialId: cuidOpt,
+});
+
+export type WebConfigInput = z.infer<typeof WebConfigInput>;
+export type DarknetConfigInput = z.infer<typeof DarknetConfigInput>;
+export type SearchEngineConfigInput = z.infer<typeof SearchEngineConfigInput>;
+export type SocialConfigByPlatform = z.infer<typeof SocialConfigByPlatform>;
+
+export const SourceCreateSchema = z.discriminatedUnion("type", [
+  SourceBaseCreate.extend({ type: z.literal("WEB"), web: WebConfigInput }),
+  SourceBaseCreate.extend({
+    type: z.literal("DARKNET"),
+    darknet: DarknetConfigInput,
+  }),
+  SourceBaseCreate.extend({
+    type: z.literal("SEARCH_ENGINE"),
+    search: SearchEngineConfigInput,
+  }),
+  SourceBaseCreate.extend({
+    type: z.literal("SOCIAL_MEDIA"),
+    social: SocialConfigByPlatform,
+  }),
+]);
+
+// 为社交媒体更新创建单独的 schema
+const SocialConfigUpdateInput = z.object({
+  platform: SocialPlatformEnum.optional(),
+  config: z.any().optional(),
+  credentialId: cuidOpt,
+  proxyId: cuidOpt,
+});
+
+export const SourceUpdateSchema = z.object({
+  name: z.string().min(1).max(64).optional(),
+  active: z.boolean().optional(),
+  rateLimit: z.number().int().min(1).max(600).optional().nullable(),
+  proxyId: cuidOpt,
+  credentialId: cuidOpt,
+  // 子配置：
+  web: WebConfigInput.partial().optional(),
+  darknet: DarknetConfigInput.partial().optional(),
+  search: SearchEngineConfigInput.partial().optional(),
+  social: SocialConfigUpdateInput.optional(),
+});
 
 export const SourceQuerySchema = z.object({
   q: z.string().optional(),
@@ -189,3 +248,5 @@ export const SourceQuerySchema = z.object({
   page: z.coerce.number().min(1).default(1),
   pageSize: z.coerce.number().min(1).max(100).default(20),
 });
+
+export const SourceTestSchema = SourceCreateSchema;

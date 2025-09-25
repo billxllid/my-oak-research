@@ -8,6 +8,7 @@ import {
 } from "@/app/api/_utils/http";
 import { CategoryUpdateSchema } from "@/app/api/_utils/zod";
 import { Prisma } from "@/lib/generated/prisma";
+import { z } from "zod";
 
 export async function PATCH(
   _: Request,
@@ -18,7 +19,10 @@ export async function PATCH(
     const body = await _.json();
     const parsed = CategoryUpdateSchema.safeParse(body);
     if (!parsed.success)
-      return badRequest("Invalid category payload", parsed.error.flatten());
+      return badRequest(
+        "Invalid category payload",
+        z.flattenError(parsed.error)
+      );
 
     const exists = await prisma.category.findUnique({ where: { id } });
     if (!exists) return notFound("Category not found");

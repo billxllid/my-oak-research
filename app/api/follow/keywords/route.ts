@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { json, badRequest, conflict, serverError } from "@/app/api/_utils/http";
 import { KeywordCreateSchema, KeywordQuerySchema } from "@/app/api/_utils/zod";
 import { Prisma } from "@/lib/generated/prisma";
+import { z } from "zod";
 
 function normalizeTokens(arr: string[]) {
   const seen = new Set<string>();
@@ -19,7 +20,10 @@ export async function GET(req: Request) {
       Object.fromEntries(searchParams)
     );
     if (!parsed.success)
-      return badRequest("Invalid query parameters", parsed.error.flatten());
+      return badRequest(
+        "Invalid query parameters",
+        z.flattenError(parsed.error)
+      );
 
     const { q, categoryId, lang, active, page, pageSize } = parsed.data;
     const where: Record<string, unknown> = {};
@@ -50,7 +54,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = KeywordCreateSchema.safeParse(body);
     if (!parsed.success)
-      return badRequest("Invalid keyword payload", parsed.error.flatten());
+      return badRequest(
+        "Invalid keyword payload",
+        z.flattenError(parsed.error)
+      );
 
     const data = parsed.data;
     const includes = normalizeTokens(data.includes);
