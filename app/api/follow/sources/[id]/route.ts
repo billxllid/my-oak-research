@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { json, badRequest, notFound, serverError } from "@/app/api/_utils/http";
 import { SourceUpdateSchema } from "@/app/api/_utils/zod";
 import { Prisma } from "@/lib/generated/prisma";
+import { z } from "zod";
 
 // 帮助函数：将 null 转换为 Prisma.JsonNull，undefined 保持不变
 function jsonOrNull(value: unknown) {
@@ -11,10 +12,14 @@ function jsonOrNull(value: unknown) {
 // 更新数据类型定义
 type ConfigUpdateData = Record<string, unknown>;
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  _: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const item = await prisma.source.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         web: true,
         darknet: true,
@@ -33,16 +38,16 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const body = await req.json();
     const parsed = SourceUpdateSchema.safeParse(body);
     if (!parsed.success) {
       return badRequest("Invalid source payload", {
         message: "Validation failed",
-        details: parsed.error.flatten(),
+        details: z.flattenError(parsed.error),
       });
     }
 
@@ -178,10 +183,10 @@ export async function PATCH(
 
 export async function DELETE(
   _: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     // 先删 config 再删 source（若未设级联）
     await prisma.$transaction(async (tx) => {
       await tx.webSourceConfig.deleteMany({ where: { sourceId: id } });
