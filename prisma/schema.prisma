@@ -121,6 +121,7 @@ model Credential {
 model Source {
   id            String     @id @default(cuid())
   name          String
+  description   String?
   type          SourceType
   active        Boolean    @default(true)
   rateLimit     Int? // req/min

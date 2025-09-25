@@ -125,7 +125,7 @@ export const SearchEngineKindEnum = z.enum([
 ]);
 export const SocialPlatformEnum = z.enum(["X", "TELEGRAM", "REDDIT"]);
 
-const WebConfigInput = z.object({
+export const WebConfigInput = z.object({
   url: z.url(),
   headers: z.record(z.string(), z.string()).optional().nullable(),
   crawlerEngine: CrawlerEngineEnum.optional().default("FETCH"),
@@ -135,7 +135,7 @@ const WebConfigInput = z.object({
   proxyId: cuidOpt,
 });
 
-const DarknetConfigInput = z.object({
+export const DarknetConfigInput = z.object({
   url: z.string().min(1), // .onion 也可能不是严格的 url()，放宽
   headers: z.record(z.string(), z.string()).optional().nullable(),
   crawlerEngine: CrawlerEngineEnum.optional().default("FETCH"),
@@ -145,7 +145,7 @@ const DarknetConfigInput = z.object({
   parseRules: z.record(z.string(), z.any()).optional().nullable(),
 });
 
-const SearchEngineConfigInput = z.object({
+export const SearchEngineConfigInput = z.object({
   engine: SearchEngineKindEnum,
   query: z.string().min(1),
   region: z.string().optional().nullable(),
@@ -155,7 +155,7 @@ const SearchEngineConfigInput = z.object({
   credentialId: cuidOpt,
 });
 
-const SocialConfigByPlatform = z.discriminatedUnion("platform", [
+export const SocialConfigByPlatform = z.discriminatedUnion("platform", [
   z.object({
     platform: z.literal("X"),
     config: z
@@ -192,6 +192,7 @@ const SocialConfigByPlatform = z.discriminatedUnion("platform", [
 
 export const SourceBaseCreate = z.object({
   name: z.string().min(1).max(64),
+  description: z.string().optional().nullable(),
   type: SourceTypeEnum,
   active: z.boolean().optional().default(true),
   rateLimit: z.number().int().min(1).max(600).optional().nullable(),
@@ -199,29 +200,35 @@ export const SourceBaseCreate = z.object({
   credentialId: cuidOpt,
 });
 
-export type WebConfigInput = z.infer<typeof WebConfigInput>;
-export type DarknetConfigInput = z.infer<typeof DarknetConfigInput>;
-export type SearchEngineConfigInput = z.infer<typeof SearchEngineConfigInput>;
-export type SocialConfigByPlatform = z.infer<typeof SocialConfigByPlatform>;
+export const WebSourceCreateSchema = SourceBaseCreate.extend({
+  type: z.literal("WEB"),
+  web: WebConfigInput,
+});
+
+export const DarknetSourceCreateSchema = SourceBaseCreate.extend({
+  type: z.literal("DARKNET"),
+  darknet: DarknetConfigInput,
+});
+
+export const SearchEngineSourceCreateSchema = SourceBaseCreate.extend({
+  type: z.literal("SEARCH_ENGINE"),
+  search: SearchEngineConfigInput,
+});
+
+export const SocialMediaSourceCreateSchema = SourceBaseCreate.extend({
+  type: z.literal("SOCIAL_MEDIA"),
+  social: SocialConfigByPlatform,
+});
 
 export const SourceCreateSchema = z.discriminatedUnion("type", [
-  SourceBaseCreate.extend({ type: z.literal("WEB"), web: WebConfigInput }),
-  SourceBaseCreate.extend({
-    type: z.literal("DARKNET"),
-    darknet: DarknetConfigInput,
-  }),
-  SourceBaseCreate.extend({
-    type: z.literal("SEARCH_ENGINE"),
-    search: SearchEngineConfigInput,
-  }),
-  SourceBaseCreate.extend({
-    type: z.literal("SOCIAL_MEDIA"),
-    social: SocialConfigByPlatform,
-  }),
+  WebSourceCreateSchema,
+  DarknetSourceCreateSchema,
+  SearchEngineSourceCreateSchema,
+  SocialMediaSourceCreateSchema,
 ]);
 
 // 为社交媒体更新创建单独的 schema
-const SocialConfigUpdateInput = z.object({
+export const SocialConfigUpdateInput = z.object({
   platform: SocialPlatformEnum.optional(),
   config: z.any().optional(),
   credentialId: cuidOpt,
@@ -230,6 +237,7 @@ const SocialConfigUpdateInput = z.object({
 
 export const SourceUpdateSchema = z.object({
   name: z.string().min(1).max(64).optional(),
+  description: z.string().optional().nullable(),
   active: z.boolean().optional(),
   rateLimit: z.number().int().min(1).max(600).optional().nullable(),
   proxyId: cuidOpt,

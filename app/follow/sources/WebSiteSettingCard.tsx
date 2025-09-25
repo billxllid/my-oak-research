@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -24,51 +26,21 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { NetworkEnvironment, networkEnvironments } from "./ProxySettingCard";
+import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
+import { SettingEditDialog } from "@/components/SettingEditDialog";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { WebSourceCreateSchema } from "@/app/api/_utils/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import ErrorMessage from "@/components/ErrorMessage";
 
-interface WebSite {
-  id: string;
-  label: string;
-  desc: string;
-  url: string;
-  networkEnvironment?: NetworkEnvironment;
+interface Props {
+  sources: (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
 }
 
-const WebSiteSettingCard = () => {
-  const webSites: WebSite[] = [
-    {
-      id: "1",
-      label: "BBC",
-      desc: "BBC News",
-      url: "https://www.bbc.com",
-      networkEnvironment: networkEnvironments[0],
-    },
-    {
-      id: "2",
-      label: "CNN",
-      desc: "CNN News",
-      url: "https://www.cnn.com",
-    },
-    {
-      id: "3",
-      label: "Reddit",
-      desc: "Reddit News",
-      url: "https://www.reddit.com",
-      networkEnvironment: networkEnvironments[2],
-    },
-  ];
-
+const WebSiteSettingCard = ({ sources }: Props) => {
   return (
     <Card>
       <CardHeader>
@@ -94,23 +66,19 @@ const WebSiteSettingCard = () => {
               <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Domain</TableHead>
-              <TableHead>Network Environment</TableHead>
+              <TableHead>URL</TableHead>
+              <TableHead>Proxy</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {webSites.map((webSite: WebSite) => (
-              <TableRow key={webSite.id}>
-                <TableCell>{webSite.id}</TableCell>
-                <TableCell>{webSite.label}</TableCell>
-                <TableCell>{webSite.desc}</TableCell>
-                <TableCell className="max-w-xs break-all whitespace-normal">
-                  <span className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer">
-                    {webSite.url}
-                  </span>
-                </TableCell>
-                <TableCell>{webSite.networkEnvironment?.label}</TableCell>
+            {sources.map((source, index) => (
+              <TableRow key={source.id}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{source.name}</TableCell>
+                <TableCell>{source.description}</TableCell>
+                <TableCell>{source.web?.url}</TableCell>
+                <TableCell>{source.proxy?.name}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline">
@@ -135,70 +103,93 @@ const AddWebSiteDialog = ({
 }: {
   networkEnvironments: NetworkEnvironment[];
 }) => {
+  const [open, setOpen] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(WebSourceCreateSchema),
+    defaultValues: {
+      type: "WEB",
+      active: true,
+      description: "",
+      rateLimit: 10,
+      web: {
+        url: "",
+        headers: {},
+        crawlerEngine: "FETCH",
+      },
+      proxyId: "",
+    },
+  });
+
+  const onSubmit = (data: z.infer<typeof WebSourceCreateSchema>) => {
+    console.log(data);
+  };
+
   return (
-    <Dialog>
-      <form>
-        <DialogTrigger asChild>
-          <Button>
-            <PlusIcon />
-            Add Web Site
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Web Site</DialogTitle>
-            <DialogDescription>
-              Add a new web site to your list.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4">
-            <div className="grid gap-3">
-              <Label htmlFor="keyword">Web Site</Label>
-              <Input id="keyword" placeholder="Keyword" required />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="description">Description</Label>
-              <Input id="description" placeholder="Description" required />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="url">URL</Label>
-              <Input
-                id="url"
-                placeholder="https://www.example.com/path?query=value"
-                required
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="useProxy">Use Proxy</Label>
-              <Select required defaultValue="none" name="useProxy">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a proxy" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {networkEnvironments.map(
-                    (networkEnvironment: NetworkEnvironment) => (
-                      <SelectItem
-                        key={networkEnvironment.id}
-                        value={networkEnvironment.id}
-                      >
-                        {networkEnvironment.label}
-                      </SelectItem>
-                    )
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button>Add</Button>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </form>
-    </Dialog>
+    <SettingEditDialog
+      props={{ open, onOpenChange: setOpen }}
+      title="Add Web Site"
+      description="Add a new web site to your list."
+      triggerButton={
+        <Button>
+          <PlusIcon />
+          Add Web Site
+        </Button>
+      }
+      buttonText="Add"
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <div className="grid gap-4">
+        <div className="grid gap-3">
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" placeholder="Name" {...register("name")} />
+          <ErrorMessage>{errors.name?.message}</ErrorMessage>
+        </div>
+        <div className="grid gap-3">
+          <Label htmlFor="description">Description</Label>
+          <Input
+            id="description"
+            placeholder="Description"
+            {...register("description")}
+          />
+          <ErrorMessage>{errors.description?.message}</ErrorMessage>
+        </div>
+        <div className="grid gap-3">
+          <Label htmlFor="web.url">URL</Label>
+          <Input
+            id="web.url"
+            placeholder="https://www.example.com"
+            {...register("web.url")}
+          />
+          <ErrorMessage>{errors.web?.url?.message}</ErrorMessage>
+        </div>
+        <div className="grid gap-3">
+          <Label htmlFor="proxyId">Proxy</Label>
+          <Select defaultValue="none">
+            <SelectTrigger>
+              <SelectValue placeholder="Select a proxy" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              {networkEnvironments.map(
+                (networkEnvironment: NetworkEnvironment) => (
+                  <SelectItem
+                    key={networkEnvironment.id}
+                    value={networkEnvironment.id}
+                  >
+                    {networkEnvironment.label}
+                  </SelectItem>
+                )
+              )}
+            </SelectContent>
+          </Select>
+          <ErrorMessage>{errors.proxyId?.message}</ErrorMessage>
+        </div>
+      </div>
+    </SettingEditDialog>
   );
 };
 
