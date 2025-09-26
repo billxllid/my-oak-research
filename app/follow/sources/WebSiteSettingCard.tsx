@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Card,
   CardHeader,
@@ -9,13 +9,6 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon, Search, PlusIcon } from "lucide-react";
 import {
@@ -26,15 +19,12 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Label } from "@/components/ui/label";
-import { NetworkEnvironment, networkEnvironments } from "./ProxySettingCard";
 import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
-import { SettingEditDialog } from "@/components/SettingEditDialog";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { WebSourceCreateSchema } from "@/app/api/_utils/zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import ErrorMessage from "@/components/ErrorMessage";
+import EditWebSiteDialog from "./WebSiteDialog";
+import { networkEnvironments } from "./ProxySettingCard";
+import { SettingDeleteAlertDialog } from "@/components/SettingDeleteAlertDialog";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Props {
   sources: (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
@@ -58,7 +48,15 @@ const WebSiteSettingCard = ({ sources }: Props) => {
               icon={<Search size={16} />}
             />
           </div>
-          <AddWebSiteDialog networkEnvironments={networkEnvironments} />
+          <EditWebSiteDialog
+            networkEnvironments={networkEnvironments}
+            triggerButton={
+              <Button>
+                <PlusIcon />
+                Add Web Site
+              </Button>
+            }
+          />
         </div>
         <Table>
           <TableHeader>
@@ -81,12 +79,23 @@ const WebSiteSettingCard = ({ sources }: Props) => {
                 <TableCell>{source.proxy?.name}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline">
-                      <PencilIcon className="size-3" />
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <TrashIcon className="size-3" />
-                    </Button>
+                    <EditWebSiteDialog
+                      networkEnvironments={networkEnvironments}
+                      triggerButton={
+                        <Button size="sm" variant="outline">
+                          <PencilIcon className="size-3" />
+                        </Button>
+                      }
+                      source={source}
+                    />
+                    <DeleteWebSiteDialog
+                      webSite={source}
+                      triggerButton={
+                        <Button size="sm" variant="outline">
+                          <TrashIcon className="size-3" />
+                        </Button>
+                      }
+                    />
                   </div>
                 </TableCell>
               </TableRow>
@@ -98,98 +107,40 @@ const WebSiteSettingCard = ({ sources }: Props) => {
   );
 };
 
-const AddWebSiteDialog = ({
-  networkEnvironments,
+const DeleteWebSiteDialog = ({
+  webSite,
+  triggerButton,
 }: {
-  networkEnvironments: NetworkEnvironment[];
+  webSite: Source & { web: WebSourceConfig } & { proxy: Proxy };
+  triggerButton: React.ReactNode;
 }) => {
-  const [open, setOpen] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(WebSourceCreateSchema),
-    defaultValues: {
-      type: "WEB",
-      active: true,
-      description: "",
-      rateLimit: 10,
-      web: {
-        url: "",
-        headers: {},
-        crawlerEngine: "FETCH",
-      },
-      proxyId: "",
-    },
-  });
-
-  const onSubmit = (data: z.infer<typeof WebSourceCreateSchema>) => {
-    console.log(data);
+  const router = useRouter();
+  const handleDelete = async (
+    webSite: Source & { web: WebSourceConfig } & { proxy: Proxy }
+  ) => {
+    await fetch(`/api/follow/sources/${webSite.id}`, {
+      method: "DELETE",
+    })
+      .then((res) => {
+        if (res.ok) {
+          toast.success("Web site deleted successfully");
+          setTimeout(() => {
+            router.refresh();
+          }, 200);
+        }
+      })
+      .catch((err) => {
+        toast.error("Failed to delete web site");
+        console.error(err);
+      });
   };
-
   return (
-    <SettingEditDialog
-      props={{ open, onOpenChange: setOpen }}
-      title="Add Web Site"
-      description="Add a new web site to your list."
-      triggerButton={
-        <Button>
-          <PlusIcon />
-          Add Web Site
-        </Button>
-      }
-      buttonText="Add"
-      onSubmit={handleSubmit(onSubmit)}
-    >
-      <div className="grid gap-4">
-        <div className="grid gap-3">
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" placeholder="Name" {...register("name")} />
-          <ErrorMessage>{errors.name?.message}</ErrorMessage>
-        </div>
-        <div className="grid gap-3">
-          <Label htmlFor="description">Description</Label>
-          <Input
-            id="description"
-            placeholder="Description"
-            {...register("description")}
-          />
-          <ErrorMessage>{errors.description?.message}</ErrorMessage>
-        </div>
-        <div className="grid gap-3">
-          <Label htmlFor="web.url">URL</Label>
-          <Input
-            id="web.url"
-            placeholder="https://www.example.com"
-            {...register("web.url")}
-          />
-          <ErrorMessage>{errors.web?.url?.message}</ErrorMessage>
-        </div>
-        <div className="grid gap-3">
-          <Label htmlFor="proxyId">Proxy</Label>
-          <Select defaultValue="none">
-            <SelectTrigger>
-              <SelectValue placeholder="Select a proxy" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">None</SelectItem>
-              {networkEnvironments.map(
-                (networkEnvironment: NetworkEnvironment) => (
-                  <SelectItem
-                    key={networkEnvironment.id}
-                    value={networkEnvironment.id}
-                  >
-                    {networkEnvironment.label}
-                  </SelectItem>
-                )
-              )}
-            </SelectContent>
-          </Select>
-          <ErrorMessage>{errors.proxyId?.message}</ErrorMessage>
-        </div>
-      </div>
-    </SettingEditDialog>
+    <SettingDeleteAlertDialog
+      triggerButton={triggerButton}
+      title="Delete Web Site"
+      description="Are you sure you want to delete this web site?"
+      onDelete={() => handleDelete(webSite)}
+    />
   );
 };
 

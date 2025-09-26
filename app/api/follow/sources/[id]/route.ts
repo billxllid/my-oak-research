@@ -63,6 +63,9 @@ export async function PATCH(
         where: { id },
         data: {
           ...(parsed.data.name !== undefined ? { name: parsed.data.name } : {}),
+          ...(parsed.data.description !== undefined
+            ? { description: parsed.data.description }
+            : {}),
           ...(parsed.data.active !== undefined
             ? { active: parsed.data.active }
             : {}),
