@@ -20,17 +20,63 @@ import { z } from "zod";
 import ErrorMessage from "@/components/ErrorMessage";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { platform } from "os";
 
 interface Props {
+  triggerButton: React.ReactNode;
   proxies: Proxy[];
   source?: Source & { social: z.infer<typeof SocialConfigByPlatform> } & {
     proxy: Proxy;
   };
 }
 
-const EditSocialMediaDialog = ({ proxies, source }: Props) => {
+const EditSocialMediaDialog = ({ triggerButton, proxies, source }: Props) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const makeDefaultSocial = (): z.infer<typeof SocialConfigByPlatform> => {
+    const platform = source?.social?.platform;
+    switch (platform) {
+      case "X":
+        return {
+          platform: "X",
+          config: {
+            user: source?.social?.config?.user ?? undefined,
+            listId: source?.social?.config?.listId ?? undefined,
+            query: source?.social?.config?.query ?? undefined,
+          },
+          credentialId: source?.credentialId ?? undefined,
+          proxyId: source?.proxyId ?? undefined,
+        };
+      case "TELEGRAM":
+        return {
+          platform: "TELEGRAM",
+          config: {
+            channel: source?.social?.config?.channel ?? "",
+            mode: source?.social?.config?.mode,
+          },
+          credentialId: source?.credentialId ?? undefined,
+          proxyId: source?.proxyId ?? undefined,
+        };
+      case "REDDIT":
+        return {
+          platform: "REDDIT",
+          config: {
+            subreddit: source?.social?.config?.subreddit ?? "",
+            sort: source?.social?.config?.sort,
+          },
+          credentialId: source?.credentialId ?? undefined,
+          proxyId: source?.proxyId ?? undefined,
+        };
+      default:
+        // fallback 保守处理
+        return {
+          platform: "X",
+          config: { user: undefined, listId: undefined, query: undefined },
+          credentialId: undefined,
+          proxyId: undefined,
+        };
+    }
+  };
   const {
     register,
     handleSubmit,
@@ -39,17 +85,13 @@ const EditSocialMediaDialog = ({ proxies, source }: Props) => {
   } = useForm({
     resolver: zodResolver(SocialMediaSourceCreateSchema),
     defaultValues: {
-      name: "Test",
-      description: "Test",
+      name: source?.name ?? "",
+      description: source?.description ?? "",
       type: "SOCIAL_MEDIA",
-      social: {
-        platform: "X",
-        config: {
-          user: "Test",
-          listId: "Test",
-          query: "Test",
-        },
-      },
+      active: source?.active ?? true,
+      rateLimit: source?.rateLimit ?? 10,
+      proxyId: source?.proxyId ?? null,
+      social: makeDefaultSocial(),
     },
   });
   const onSubmit = async (
@@ -97,12 +139,7 @@ const EditSocialMediaDialog = ({ proxies, source }: Props) => {
       description={
         source ? "Edit a social media" : "Add a new social media to your list."
       }
-      triggerButton={
-        <Button>
-          <PlusIcon />
-          {source ? "Edit Social Media" : "Add Social Media"}
-        </Button>
-      }
+      triggerButton={triggerButton}
       buttonText={source ? "Update" : "Add"}
       onSubmit={handleSubmit(onSubmit)}
     >
@@ -177,28 +214,54 @@ const EditSocialMediaDialog = ({ proxies, source }: Props) => {
                 )}
                 {field.value === "TELEGRAM" && (
                   <div className="grid gap-3">
-                    <Label htmlFor="telegram-channel">Channel</Label>
-                    <Input
-                      id="telegram-channel"
-                      placeholder="@channel or channel_id"
-                      {...register("social.config.channel")}
-                    />
-                    <ErrorMessage>
-                      {(errors.social?.config as any)?.channel?.message}
-                    </ErrorMessage>
+                    <div className="grid gap-3">
+                      <Label htmlFor="telegram-channel">Channel</Label>
+                      <Input
+                        id="telegram-channel"
+                        placeholder="@channel or channel_id"
+                        {...register("social.config.channel")}
+                      />
+                      <ErrorMessage>
+                        {(errors.social?.config as any)?.channel?.message}
+                      </ErrorMessage>
+                    </div>
+                    <div className="grid gap-3">
+                      <Label htmlFor="telegram-mode">Mode</Label>
+                      <Input
+                        id="telegram-mode"
+                        placeholder="Mode"
+                        {...register("social.config.mode")}
+                      />
+                      <ErrorMessage>
+                        {(errors.social?.config as any)?.mode?.message}
+                      </ErrorMessage>
+                    </div>
                   </div>
                 )}
                 {field.value === "REDDIT" && (
                   <div className="grid gap-3">
-                    <Label htmlFor="reddit-subreddit">Subreddit</Label>
-                    <Input
-                      id="reddit-subreddit"
-                      placeholder="subreddit name"
-                      {...register("social.config.subreddit")}
-                    />
-                    <ErrorMessage>
-                      {(errors.social?.config as any)?.subreddit?.message}
-                    </ErrorMessage>
+                    <div className="grid gap-3">
+                      <Label htmlFor="reddit-subreddit">Subreddit</Label>
+                      <Input
+                        id="reddit-subreddit"
+                        placeholder="subreddit name"
+                        {...register("social.config.subreddit")}
+                      />
+                      <ErrorMessage>
+                        {(errors.social?.config as any)?.subreddit?.message}
+                      </ErrorMessage>
+                    </div>
+                    <div className="grid gap-3">
+                      <Label htmlFor="reddit-sort">Sort</Label>
+                      <Input
+                        id="reddit-sort"
+                        placeholder="Sort"
+                        {...register("social.config.sort")}
+                      />
+                      <ErrorMessage>
+                        {(errors.social?.config as any)?.sort?.message}
+                      </ErrorMessage>
+                    </div>
                   </div>
                 )}
               </div>

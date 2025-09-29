@@ -7,7 +7,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { PlusIcon, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import {
@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/table";
 import { Source, SocialMediaSourceConfig, Proxy } from "@/lib/generated/prisma";
 import EditSocialMediaDialog from "./SocialMediaDialog";
+import { SocialConfigByPlatform } from "@/app/api/_utils/zod";
+import { z } from "zod";
 
 interface Props {
   sources: (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
@@ -39,12 +41,20 @@ const SocialMediaSettingCard = ({ sources, proxies }: Props) => {
         <div className="flex items-center gap-4 mb-4">
           <div className="relative flex-1">
             <Input
-              placeholder="Search web sites..."
+              placeholder="Search social media..."
               className="pl-9 bg-muted border-none"
               icon={<Search size={16} />}
             />
           </div>
-          <EditSocialMediaDialog proxies={proxies} />
+          <EditSocialMediaDialog
+            proxies={proxies}
+            triggerButton={
+              <Button>
+                <PlusIcon />
+                Add Social Media
+              </Button>
+            }
+          />
         </div>
         <Table>
           <TableHeader>
@@ -57,31 +67,34 @@ const SocialMediaSettingCard = ({ sources, proxies }: Props) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sources.map(
-              (
-                socialMedia: Source & { social: SocialMediaSourceConfig } & {
-                  proxy: Proxy;
-                },
-                index: number
-              ) => (
-                <TableRow key={index}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{socialMedia.name}</TableCell>
-                  <TableCell>{socialMedia.description}</TableCell>
-                  <TableCell>{socialMedia.social.platform}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline">
-                        <PencilIcon className="size-3" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <TrashIcon className="size-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
-            )}
+            {sources.map((source, index) => (
+              <TableRow key={index}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{source.name}</TableCell>
+                <TableCell>{source.description}</TableCell>
+                <TableCell>{source.social.platform}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <EditSocialMediaDialog
+                      proxies={proxies}
+                      source={
+                        source as Source & {
+                          social: z.infer<typeof SocialConfigByPlatform>;
+                        } & { proxy: Proxy }
+                      }
+                      triggerButton={
+                        <Button size="sm" variant="outline">
+                          <PencilIcon className="size-3" />
+                        </Button>
+                      }
+                    />
+                    <Button size="sm" variant="outline">
+                      <TrashIcon className="size-3" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </CardContent>

@@ -38,9 +38,9 @@ const EditWebSiteDialog = ({ triggerButton, source, proxies }: Props) => {
     resolver: zodResolver(WebSourceCreateSchema),
     defaultValues: {
       name: source?.name || "",
+      description: source?.description || "",
       type: "WEB",
       active: source?.active || true,
-      description: source?.description || "",
       rateLimit: source?.rateLimit || 10,
       proxyId: source?.proxyId || null,
       web: {
