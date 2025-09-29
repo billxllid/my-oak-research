@@ -81,6 +81,7 @@ export async function POST(req: Request) {
         excludes,
         synonyms: synonymsClean,
         active: data.active,
+        enableAiExpand: data.enableAiExpand,
       },
       include: { category: true },
     });

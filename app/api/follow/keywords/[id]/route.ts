@@ -85,6 +85,7 @@ export async function PATCH(
         ...("excludes" in data ? { excludes: excludes ?? [] } : {}),
         ...("synonyms" in data ? { synonyms: synonymsClean ?? [] } : {}),
         ...("active" in data ? { active: !!data.active } : {}),
+        ...("enableAiExpand" in data ? { enableAiExpand: !!data.enableAiExpand } : {}),
       },
       include: { category: true },
     });

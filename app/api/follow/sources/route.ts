@@ -76,6 +76,7 @@ export async function POST(req: Request) {
       const base = await tx.source.create({
         data: {
           name: data.name,
+          description: data.description ?? null,
           type: data.type,
           active: data.active ?? true,
           rateLimit: data.rateLimit ?? null,
