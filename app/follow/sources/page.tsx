@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import WebSiteSetting from "./WebSiteSetting";
-import SocialMediaSettingCard from "./SocialMediaSettingCard";
+import SocialMediaSetting from "./SocialMediaSetting";
 import DarknetSettingCard from "./DarknetSettingCard";
 import SearchEngineSettingCard from "./SearchEngineSettingCard";
 import ProxySettingCard from "./ProxySettingCard";
@@ -55,7 +55,7 @@ const Sources = async () => {
           <WebSiteSetting sources={webSites} proxies={proxies} />
         </TabsContent>
         <TabsContent value="social-media">
-          <SocialMediaSettingCard sources={socialMedia} proxies={proxies} />
+          <SocialMediaSetting sources={socialMedia} proxies={proxies} />
         </TabsContent>
         <TabsContent value="darknet">
           <DarknetSettingCard />

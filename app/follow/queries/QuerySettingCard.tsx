@@ -28,7 +28,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Keyword } from "../keywords/KeywordSetting";
-import { socialMedia } from "../sources/SocialMediaSettingCard";
+import { socialMedia } from "../sources/SocialMediaSetting";
 
 interface Query {
   id: string;
