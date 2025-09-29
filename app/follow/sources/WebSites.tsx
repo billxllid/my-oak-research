@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import EditWebSiteDialog from "./WebSiteDialog";
-import DeleteWebSiteDialog from "./WebSiteAlert";
+import SourceDeleteAlert from "./SourceDeleteAlert";
 import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
 
 interface Props {
@@ -51,8 +51,8 @@ const WebSites = ({ sources, proxies }: Props) => {
                   source={source}
                   proxies={proxies}
                 />
-                <DeleteWebSiteDialog
-                  webSite={source}
+                <SourceDeleteAlert
+                  source={source}
                   triggerButton={
                     <Button size="sm" variant="outline">
                       <TrashIcon className="size-3" />

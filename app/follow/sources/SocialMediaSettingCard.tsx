@@ -7,9 +7,9 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PlusIcon, Search } from "lucide-react";
+import { PlusIcon, Search, TrashIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, TrashIcon } from "lucide-react";
+import { PencilIcon } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -22,6 +22,7 @@ import { Source, SocialMediaSourceConfig, Proxy } from "@/lib/generated/prisma";
 import EditSocialMediaDialog from "./SocialMediaDialog";
 import { SocialConfigByPlatform } from "@/app/api/_utils/zod";
 import { z } from "zod";
+import SourceDeleteAlert from "./SourceDeleteAlert";
 
 interface Props {
   sources: (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
@@ -88,9 +89,14 @@ const SocialMediaSettingCard = ({ sources, proxies }: Props) => {
                         </Button>
                       }
                     />
-                    <Button size="sm" variant="outline">
-                      <TrashIcon className="size-3" />
-                    </Button>
+                    <SourceDeleteAlert
+                      source={source}
+                      triggerButton={
+                        <Button size="sm" variant="outline">
+                          <TrashIcon className="size-3" />
+                        </Button>
+                      }
+                    />
                   </div>
                 </TableCell>
               </TableRow>

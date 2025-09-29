@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelectItem } from "@/components/ui/select";
@@ -20,7 +18,6 @@ import { z } from "zod";
 import ErrorMessage from "@/components/ErrorMessage";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { platform } from "os";
 
 interface Props {
   triggerButton: React.ReactNode;
