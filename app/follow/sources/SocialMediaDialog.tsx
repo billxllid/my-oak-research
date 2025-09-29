@@ -6,21 +6,30 @@ import { PlusIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelectItem } from "@/components/ui/select";
-import { SocialMediaSourceCreateSchema } from "@/app/api/_utils/zod";
+import {
+  SocialConfigByPlatform,
+  SocialMediaSourceCreateSchema,
+} from "@/app/api/_utils/zod";
 import SelectProxy from "./SelectProxy";
 import { Controller, useForm } from "react-hook-form";
-import { Proxy } from "@/lib/generated/prisma";
+import { Proxy, Source } from "@/lib/generated/prisma";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SettingEditDialog } from "@/components/SettingEditDialog";
 import { z } from "zod";
 import ErrorMessage from "@/components/ErrorMessage";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Props {
   proxies: Proxy[];
+  source?: Source & { social: z.infer<typeof SocialConfigByPlatform> } & {
+    proxy: Proxy;
+  };
 }
 
-const EditSocialMediaDialog = ({ proxies }: Props) => {
+const EditSocialMediaDialog = ({ proxies, source }: Props) => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const {
     register,
@@ -43,21 +52,58 @@ const EditSocialMediaDialog = ({ proxies }: Props) => {
       },
     },
   });
-  const onSubmit = (data: z.infer<typeof SocialMediaSourceCreateSchema>) => {
+  const onSubmit = async (
+    data: z.infer<typeof SocialMediaSourceCreateSchema>
+  ) => {
     console.log(data);
+    const endpoint = source
+      ? `/api/follow/sources/${source.id}`
+      : "/api/follow/sources";
+    const method = source ? "PATCH" : "POST";
+    const body = JSON.stringify(data);
+    await fetch(endpoint, { method, body })
+      .then((res) => {
+        if (res.ok) {
+          toast.success(
+            source
+              ? "Social media updated successfully"
+              : "Social media added successfully"
+          );
+          setOpen(false);
+          setTimeout(() => {
+            router.refresh();
+          }, 200);
+        } else {
+          toast.error(
+            source
+              ? "Failed to update social media"
+              : "Failed to add social media"
+          );
+        }
+      })
+      .catch((err) => {
+        toast.error(
+          source
+            ? "Failed to update social media"
+            : "Failed to add social media"
+        );
+        console.error(err);
+      });
   };
   return (
     <SettingEditDialog
       props={{ open, onOpenChange: setOpen }}
-      title="Add Social Media"
-      description="Add a new social media to your list."
+      title={source ? "Edit Social Media" : "Add Social Media"}
+      description={
+        source ? "Edit a social media" : "Add a new social media to your list."
+      }
       triggerButton={
         <Button>
           <PlusIcon />
-          Add Social Media
+          {source ? "Edit Social Media" : "Add Social Media"}
         </Button>
       }
-      buttonText="Add"
+      buttonText={source ? "Update" : "Add"}
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="grid gap-4">

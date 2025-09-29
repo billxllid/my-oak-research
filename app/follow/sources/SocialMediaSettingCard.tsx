@@ -61,10 +61,11 @@ const SocialMediaSettingCard = ({ sources, proxies }: Props) => {
               (
                 socialMedia: Source & { social: SocialMediaSourceConfig } & {
                   proxy: Proxy;
-                }
+                },
+                index: number
               ) => (
-                <TableRow key={socialMedia.id}>
-                  <TableCell>{socialMedia.id}</TableCell>
+                <TableRow key={index}>
+                  <TableCell>{index + 1}</TableCell>
                   <TableCell>{socialMedia.name}</TableCell>
                   <TableCell>{socialMedia.description}</TableCell>
                   <TableCell>{socialMedia.social.platform}</TableCell>
