@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
-import React from "react";
 import EditWebSiteDialog from "./WebSiteDialog";
 import DeleteWebSiteDialog from "./WebSiteAlert";
 import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
@@ -44,13 +43,13 @@ const WebSites = ({ sources, proxies }: Props) => {
             <TableCell>
               <div className="flex items-center gap-2">
                 <EditWebSiteDialog
-                  proxies={proxies}
                   triggerButton={
                     <Button size="sm" variant="outline">
                       <PencilIcon className="size-3" />
                     </Button>
                   }
                   source={source}
+                  proxies={proxies}
                 />
                 <DeleteWebSiteDialog
                   webSite={source}

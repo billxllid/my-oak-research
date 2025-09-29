@@ -28,7 +28,6 @@ const Sources = async () => {
       credential: true,
     },
   });
-  const proxies = await prisma.proxy.findMany();
   const webSites = sources.filter(
     (source) => source.type === "WEB"
   ) as (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
@@ -41,7 +40,7 @@ const Sources = async () => {
   const searchEngines = sources.filter(
     (source) => source.type === "SEARCH_ENGINE"
   ) as (Source & { search: SearchEngineSourceConfig } & { proxy: Proxy })[];
-
+  const proxies = await prisma.proxy.findMany();
   return (
     <div>
       <Tabs defaultValue="web-sites" className="space-y-2">
@@ -56,7 +55,7 @@ const Sources = async () => {
           <WebSiteSetting sources={webSites} proxies={proxies} />
         </TabsContent>
         <TabsContent value="social-media">
-          <SocialMediaSettingCard />
+          <SocialMediaSettingCard sources={socialMedia} proxies={proxies} />
         </TabsContent>
         <TabsContent value="darknet">
           <DarknetSettingCard />

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
@@ -13,10 +15,8 @@ import { ControlledSelect } from "@/components/ui/controlled-select";
 import ErrorMessage from "@/components/ErrorMessage";
 import { WebSourceConfig, Source, Proxy } from "@/lib/generated/prisma";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { PlusIcon, TestTube } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import SelectProxy from "./SelectProxy";
 
 interface Props {
   triggerButton: React.ReactNode;
@@ -127,28 +127,13 @@ const EditWebSiteDialog = ({ triggerButton, source, proxies }: Props) => {
           />
           <ErrorMessage>{errors.web?.url?.message}</ErrorMessage>
         </div>
-        <div className="grid gap-3">
-          <Label htmlFor="proxyId">Proxy</Label>
-          <Controller
-            name="proxyId"
-            control={control}
-            render={({ field }) => (
-              <ControlledSelect
-                value={field.value}
-                onValueChange={field.onChange}
-                placeholder="Select a proxy"
-                nullValue="none"
-              >
-                {proxies.map((proxy: Proxy) => (
-                  <SelectItem key={proxy.id} value={proxy.id}>
-                    {proxy.name}
-                  </SelectItem>
-                ))}
-              </ControlledSelect>
-            )}
-          />
-          <ErrorMessage>{errors.proxyId?.message}</ErrorMessage>
-        </div>
+
+        <SelectProxy
+          control={control}
+          proxies={proxies}
+          error={errors.proxyId?.message}
+        />
+
         <div className="grid gap-3">
           <Label htmlFor="web.headers">Headers</Label>
           <Textarea

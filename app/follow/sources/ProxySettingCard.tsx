@@ -36,13 +36,13 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Proxy, ProxyType } from "@/lib/generated/prisma";
+import { ProxyType, Proxy } from "@/lib/generated/prisma";
 
 interface Props {
   proxies: Proxy[];
 }
 
-const ProxySettingCard = ({ proxies }: Props) => {
+const ProxySettingCard = async ({ proxies }: Props) => {
   return (
     <Card>
       <CardHeader>
@@ -71,7 +71,7 @@ const ProxySettingCard = ({ proxies }: Props) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {proxies.map((proxy: Proxy, index: number) => (
+            {proxies.map((proxy, index: number) => (
               <TableRow key={proxy.id}>
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>{proxy.name}</TableCell>

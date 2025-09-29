@@ -178,7 +178,7 @@ export const SearchEngineConfigInput = z.object({
   credentialId: cuidOpt,
 });
 
-export const SocialConfigByPlatform = z.discriminatedUnion("platform", [
+export const SocialConfigByPlatform =  z.discriminatedUnion("platform", [
   z.object({
     platform: z.literal("X"),
     config: z

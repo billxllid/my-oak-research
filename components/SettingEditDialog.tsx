@@ -20,7 +20,7 @@ interface Props {
   children: React.ReactNode;
   buttonText: string;
   props: React.ComponentProps<typeof Dialog>;
-  onSubmit: () => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
 export const SettingEditDialog = ({
