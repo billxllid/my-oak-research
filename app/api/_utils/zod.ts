@@ -258,3 +258,31 @@ export const SourceQuerySchema = z.object({
 });
 
 export const SourceTestSchema = SourceCreateSchema;
+
+// Proxy schemas
+export const ProxyTypeEnum = z.enum([
+  "HTTP",
+  "HTTPS", 
+  "SOCKS4",
+  "SOCKS5",
+  "TOR",
+]);
+
+export const ProxyCreateSchema = z.object({
+  name: z.string().min(1, "Name is required").max(64),
+  type: ProxyTypeEnum,
+  url: z.string().min(1, "URL is required").url("Invalid URL format"),
+  active: z.boolean().optional().default(true),
+});
+
+export const ProxyUpdateSchema = ProxyCreateSchema.partial();
+
+export const ProxyQuerySchema = z.object({
+  q: z.string().optional(),
+  type: ProxyTypeEnum.optional(),
+  active: z.enum(["true", "false"]).optional(),
+  page: z.coerce.number().min(1).default(1),
+  pageSize: z.coerce.number().min(1).max(100).default(20),
+});
+
+export type ProxyQuery = z.infer<typeof ProxyQuerySchema>;
