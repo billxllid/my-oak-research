@@ -8,7 +8,6 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { NetworkEnvironment } from "./ProxySettingCard";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,6 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { networkEnvironments } from "./ProxySettingCard";
 import {
   Dialog,
   DialogTrigger,
@@ -47,7 +45,6 @@ interface SocialMedia {
   name: string;
   desc: string;
   type: string;
-  networkEnvironment?: NetworkEnvironment;
 }
 
 const supportedSocialMedia: { [key: string]: SocialMedia } = {
@@ -56,7 +53,6 @@ const supportedSocialMedia: { [key: string]: SocialMedia } = {
     name: "Twitter",
     desc: "Twitter Messenger (Twitter Business API)",
     type: "twitter",
-    networkEnvironment: networkEnvironments[0],
   },
 
   facebook: {
@@ -64,7 +60,6 @@ const supportedSocialMedia: { [key: string]: SocialMedia } = {
     name: "Facebook",
     desc: "Facebook Messenger (Facebook Business API)",
     type: "facebook",
-    networkEnvironment: networkEnvironments[0],
   },
 
   whatsapp: {
@@ -72,7 +67,6 @@ const supportedSocialMedia: { [key: string]: SocialMedia } = {
     name: "WhatsApp",
     desc: "WhatsApp Messenger (WhatsApp Business API)",
     type: "whatsapp",
-    networkEnvironment: networkEnvironments[0],
   },
 };
 
@@ -109,7 +103,6 @@ const SocialMediaSettingCard = () => {
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Network Environment</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -127,9 +120,7 @@ const SocialMediaSettingCard = () => {
                     {socialMedia.desc || socialMedia.api.desc}
                   </TableCell>
                   <TableCell>{socialMedia.api.type}</TableCell>
-                  <TableCell>
-                    {socialMedia.api.networkEnvironment?.label}
-                  </TableCell>
+                  <TableCell>{socialMedia.api.type}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button size="sm" variant="outline">
@@ -237,14 +228,14 @@ const AddSocialMediaDialog = () => {
                   <SelectValue placeholder="Select a network environment" />
                 </SelectTrigger>
                 <SelectContent>
-                  {networkEnvironments.map((networkEnvironment) => (
+                  {/* {networkEnvironments.map((networkEnvironment) => (
                     <SelectItem
                       key={networkEnvironment.id}
                       value={networkEnvironment.id}
                     >
                       {networkEnvironment.label}
                     </SelectItem>
-                  ))}
+                  ))} */}
                 </SelectContent>
               </Select>
             </div>

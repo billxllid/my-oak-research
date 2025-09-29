@@ -1,13 +1,8 @@
 "use client";
 
 import { Category, Prisma } from "@/lib/generated/prisma";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { SelectItem } from "@/components/ui/select";
+import { ControlledSelect } from "@/components/ui/controlled-select";
 import { Controller } from "react-hook-form";
 import { Switch } from "@/components/ui/switch";
 import { KeywordUpdateSchema, KeywordCreateSchema } from "@/app/api/_utils/zod";
@@ -111,26 +106,23 @@ const EditKeywordDialog = ({
         <ErrorMessage>{errors.name?.message}</ErrorMessage>
       </div>
       <div className="grid gap-3">
-        <Label htmlFor="category">Category</Label>
+        <Label htmlFor="categoryId">Category</Label>
         <Controller
           name="categoryId"
           control={control}
           render={({ field }) => (
-            <Select
-              value={field.value ?? undefined}
+            <ControlledSelect
+              value={field.value}
               onValueChange={field.onChange}
+              placeholder="Select a category"
+              nullValue="none"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category: Category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {categories.map((category: Category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </ControlledSelect>
           )}
         />
         <ErrorMessage>{errors.categoryId?.message}</ErrorMessage>

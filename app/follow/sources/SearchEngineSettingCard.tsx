@@ -18,8 +18,6 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { NetworkEnvironment } from "./ProxySettingCard";
-import { networkEnvironments } from "./ProxySettingCard";
 import {
   Dialog,
   DialogTrigger,
@@ -46,7 +44,6 @@ interface SearchEngine {
   label: string;
   desc: string;
   url: string;
-  networkEnvironment?: NetworkEnvironment;
 }
 
 const SearchEngineSettingCard = () => {
@@ -56,7 +53,6 @@ const SearchEngineSettingCard = () => {
       label: "Google",
       desc: "Google is a search engine that indexes the web.",
       url: "https://www.google.com",
-      networkEnvironment: networkEnvironments[0],
     },
   ];
   return (
@@ -74,7 +70,7 @@ const SearchEngineSettingCard = () => {
               icon={<Search size={16} />}
             />
           </div>
-          <AddSearchEngineDialog networkEnvironments={networkEnvironments} />
+          <AddSearchEngineDialog />
         </div>
         <Table>
           <TableHeader>
@@ -83,7 +79,6 @@ const SearchEngineSettingCard = () => {
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Domain</TableHead>
-              <TableHead>Network Environment</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -98,7 +93,6 @@ const SearchEngineSettingCard = () => {
                 <TableCell className="max-w-xs break-all whitespace-normal">
                   <span className="text-sm">{searchEngine.url}</span>
                 </TableCell>
-                <TableCell>{searchEngine.networkEnvironment?.label}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline">
@@ -118,11 +112,7 @@ const SearchEngineSettingCard = () => {
   );
 };
 
-const AddSearchEngineDialog = ({
-  networkEnvironments,
-}: {
-  networkEnvironments: NetworkEnvironment[];
-}) => {
+const AddSearchEngineDialog = () => {
   return (
     <Dialog>
       <form>
@@ -164,14 +154,14 @@ const AddSearchEngineDialog = ({
                   <SelectValue placeholder="Select a network environment" />
                 </SelectTrigger>
                 <SelectContent>
-                  {networkEnvironments.map((networkEnvironment) => (
+                  {/* {networkEnvironments.map((networkEnvironment) => (
                     <SelectItem
                       key={networkEnvironment.id}
                       value={networkEnvironment.id}
                     >
                       {networkEnvironment.label}
                     </SelectItem>
-                  ))}
+                  ))} */}
                 </SelectContent>
               </Select>
             </div>

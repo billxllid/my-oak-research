@@ -1,6 +1,6 @@
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import WebSiteSettingCard from "./WebSiteSettingCard";
+import WebSiteSetting from "./WebSiteSetting";
 import SocialMediaSettingCard from "./SocialMediaSettingCard";
 import DarknetSettingCard from "./DarknetSettingCard";
 import SearchEngineSettingCard from "./SearchEngineSettingCard";
@@ -28,6 +28,7 @@ const Sources = async () => {
       credential: true,
     },
   });
+  const proxies = await prisma.proxy.findMany();
   const webSites = sources.filter(
     (source) => source.type === "WEB"
   ) as (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
@@ -52,7 +53,7 @@ const Sources = async () => {
           <TabsTrigger value="proxy">Proxy</TabsTrigger>
         </TabsList>
         <TabsContent value="web-sites">
-          <WebSiteSettingCard sources={webSites} />
+          <WebSiteSetting sources={webSites} proxies={proxies} />
         </TabsContent>
         <TabsContent value="social-media">
           <SocialMediaSettingCard />
@@ -64,7 +65,7 @@ const Sources = async () => {
           <SearchEngineSettingCard />
         </TabsContent>
         <TabsContent value="proxy">
-          <ProxySettingCard />
+          <ProxySettingCard proxies={proxies} />
         </TabsContent>
       </Tabs>
     </div>

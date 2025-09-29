@@ -125,24 +125,47 @@ export const SearchEngineKindEnum = z.enum([
 ]);
 export const SocialPlatformEnum = z.enum(["X", "TELEGRAM", "REDDIT"]);
 
+function parseJson(val: unknown) {
+  if (val === "") return undefined;
+  if (typeof val === "string") {
+    try {
+      const parse = JSON.parse(val);
+      return parse;
+    } catch (error) {
+      return val;
+    }
+  }
+  return val;
+}
+
 export const WebConfigInput = z.object({
   url: z.url(),
-  headers: z.record(z.string(), z.string()).optional().nullable(),
+  headers: z.preprocess((val) => parseJson(val), z.record(z.string(), z.string()).optional().nullable()),
   crawlerEngine: CrawlerEngineEnum.optional().default("FETCH"),
   render: z.boolean().optional().default(false),
-  parseRules: z.record(z.string(), z.any()).optional().nullable(),
+  parseRules: z.preprocess((val) => parseJson(val), z.record(z.string(), z.any()).optional().nullable()),
   robotsRespect: z.boolean().optional().default(true),
   proxyId: cuidOpt,
 });
 
 export const DarknetConfigInput = z.object({
   url: z.string().min(1), // .onion 也可能不是严格的 url()，放宽
-  headers: z.record(z.string(), z.string()).optional().nullable(),
+  headers: z.preprocess((val) => {
+    if (typeof val === "string") {
+      return JSON.parse(val);
+    }
+    return val;
+  }, z.record(z.string(), z.string()).optional().nullable()),
   crawlerEngine: CrawlerEngineEnum.optional().default("FETCH"),
   // Darknet 通常强制使用代理（TOR/SOCKS5）
   proxyId: cuid,
   render: z.boolean().optional().default(false),
-  parseRules: z.record(z.string(), z.any()).optional().nullable(),
+  parseRules: z.preprocess((val) => {
+    if (typeof val === "string") {
+      return JSON.parse(val);
+    }
+    return val;
+  }, z.record(z.string(), z.any()).optional().nullable()),
 });
 
 export const SearchEngineConfigInput = z.object({
@@ -207,6 +230,7 @@ export const WebSourceCreateSchema = SourceBaseCreate.extend({
 
 export const DarknetSourceCreateSchema = SourceBaseCreate.extend({
   type: z.literal("DARKNET"),
+  proxyId: cuid,
   darknet: DarknetConfigInput,
 });
 

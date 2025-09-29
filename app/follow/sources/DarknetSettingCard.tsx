@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { NetworkEnvironment, networkEnvironments } from "./ProxySettingCard";
 import {
   Table,
   TableHeader,
@@ -44,7 +43,6 @@ interface DarknetSource {
   label: string;
   desc: string;
   url: string;
-  networkEnvironment?: NetworkEnvironment;
 }
 
 const DarknetSettingCard = () => {
@@ -54,14 +52,12 @@ const DarknetSettingCard = () => {
       label: "Ahmia Search Engine",
       desc: "Ahmia is a popular dark web search engine that indexes .onion websites, making them accessible through the Tor network.",
       url: "http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion/",
-      networkEnvironment: networkEnvironments[0],
     },
     {
       id: "2",
       label: "Darknet Search Engine",
       desc: "Darknet Search Engine is a popular dark web search engine that indexes .onion websites, making them accessible through the Tor network.",
       url: "http://darknetsearchengine.onion/",
-      networkEnvironment: networkEnvironments[0],
     },
   ];
   return (
@@ -81,7 +77,7 @@ const DarknetSettingCard = () => {
               icon={<Search size={16} />}
             />
           </div>
-          <AddDarknetSourceDialog networkEnvironments={networkEnvironments} />
+          <AddDarknetSourceDialog />
         </div>
         <Table>
           <TableHeader>
@@ -105,7 +101,7 @@ const DarknetSettingCard = () => {
                 <TableCell className="max-w-xs break-all whitespace-normal">
                   <span className="text-sm">{darknetSource.url}</span>
                 </TableCell>
-                <TableCell>{darknetSource.networkEnvironment?.label}</TableCell>
+                <TableCell>Proxy</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline">
@@ -125,11 +121,7 @@ const DarknetSettingCard = () => {
   );
 };
 
-const AddDarknetSourceDialog = ({
-  networkEnvironments,
-}: {
-  networkEnvironments: NetworkEnvironment[];
-}) => {
+const AddDarknetSourceDialog = () => {
   return (
     <Dialog>
       <form>
@@ -175,14 +167,14 @@ const AddDarknetSourceDialog = ({
                   <SelectValue placeholder="Select a network environment" />
                 </SelectTrigger>
                 <SelectContent>
-                  {networkEnvironments.map((networkEnvironment) => (
+                  {/* {networkEnvironments.map((networkEnvironment) => (
                     <SelectItem
                       key={networkEnvironment.id}
                       value={networkEnvironment.id}
                     >
                       {networkEnvironment.label}
                     </SelectItem>
-                  ))}
+                  ))} */}
                 </SelectContent>
               </Select>
             </div>

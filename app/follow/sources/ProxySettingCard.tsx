@@ -36,46 +36,13 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { Proxy, ProxyType } from "@/lib/generated/prisma";
 
-enum NetworkEnvironmentProtocol {
-  HTTP = "http",
-  HTTPS = "https",
-  SOCKS5 = "socks5",
+interface Props {
+  proxies: Proxy[];
 }
 
-export interface NetworkEnvironment {
-  id: string;
-  label: string;
-  protocol: NetworkEnvironmentProtocol;
-  endpoint: string;
-  region: string;
-}
-
-export const networkEnvironments: NetworkEnvironment[] = [
-  {
-    id: "1",
-    label: "US HTTP Proxy",
-    protocol: NetworkEnvironmentProtocol.HTTP,
-    endpoint: "127.0.0.1:8080",
-    region: "us",
-  },
-  {
-    id: "2",
-    label: "EU HTTPS Proxy",
-    protocol: NetworkEnvironmentProtocol.HTTPS,
-    endpoint: "127.0.0.1:8081",
-    region: "eu",
-  },
-  {
-    id: "3",
-    label: "Asia SOCKS5 Proxy",
-    protocol: NetworkEnvironmentProtocol.SOCKS5,
-    endpoint: "127.0.0.1:8082",
-    region: "asia",
-  },
-];
-
-const ProxySettingCard = () => {
+const ProxySettingCard = ({ proxies }: Props) => {
   return (
     <Card>
       <CardHeader>
@@ -98,34 +65,30 @@ const ProxySettingCard = () => {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Protocol</TableHead>
-              <TableHead>Endpoint</TableHead>
-              <TableHead>Region</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>URL</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {networkEnvironments.map(
-              (networkEnvironment: NetworkEnvironment) => (
-                <TableRow key={networkEnvironment.id}>
-                  <TableCell>{networkEnvironment.id}</TableCell>
-                  <TableCell>{networkEnvironment.label}</TableCell>
-                  <TableCell>{networkEnvironment.protocol}</TableCell>
-                  <TableCell>{networkEnvironment.endpoint}</TableCell>
-                  <TableCell>{networkEnvironment.region}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline">
-                        <PencilIcon className="size-3" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <TrashIcon className="size-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
-            )}
+            {proxies.map((proxy: Proxy, index: number) => (
+              <TableRow key={proxy.id}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{proxy.name}</TableCell>
+                <TableCell>{proxy.type}</TableCell>
+                <TableCell>{proxy.url}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline">
+                      <PencilIcon className="size-3" />
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <TrashIcon className="size-3" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </CardContent>
@@ -156,41 +119,27 @@ const AddProxySettingDialog = () => {
               <Input id="name" placeholder="Name" required />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="protocol">Protocol</Label>
+              <Label htmlFor="type">Type</Label>
               <Select required>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a protocol" />
+                  <SelectValue placeholder="Proxy type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.values(NetworkEnvironmentProtocol).map((protocol) => (
-                    <SelectItem key={protocol} value={protocol}>
-                      {protocol}
+                  {Object.values(ProxyType).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="endpoint">Endpoint</Label>
-              <Input id="endpoint" placeholder="Endpoint" required />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="region">Region</Label>
-              <Select required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a region" />
-                </SelectTrigger>
-                <SelectContent>
-                  {networkEnvironments.map((networkEnvironment) => (
-                    <SelectItem
-                      key={networkEnvironment.id}
-                      value={networkEnvironment.id}
-                    >
-                      {networkEnvironment.region}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="url">URL</Label>
+              <Input
+                id="url"
+                placeholder="proxy://user:pass@host:port"
+                required
+              />
             </div>
           </div>
           <DialogFooter>
