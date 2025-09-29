@@ -27,17 +27,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Keyword } from "../keywords/KeywordSetting";
-import { socialMedia } from "../sources/SocialMediaSetting";
-
-interface Query {
-  id: string;
-  keywords: Keyword[];
-  soureces: string[];
-}
 
 const QuerySettingCard = () => {
-  const keywords: Keyword[] = [
+  const keywords = [
     {
       id: "1",
       name: "Trump",
@@ -100,16 +92,16 @@ const QuerySettingCard = () => {
     },
   ];
 
-  const Queries: Query[] = [
+  const Queries = [
     {
       id: "1",
       keywords: [keywords[0], keywords[1]],
-      soureces: [socialMedia[0].api.name, socialMedia[1].api.name],
+      soureces: [],
     },
     {
       id: "2",
       keywords: [keywords[2], keywords[3]],
-      soureces: [socialMedia[1].api.name, socialMedia[2].api.name],
+      soureces: [],
     },
   ];
   return (
