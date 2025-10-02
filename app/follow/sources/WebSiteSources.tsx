@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -7,21 +6,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import EditSocialMediaDialog from "./SocialMediaDialog";
-import { SocialConfigByPlatform } from "@/app/api/_utils/zod";
-import { SocialMediaSourceConfig, Source } from "@/lib/generated/prisma";
-import { z } from "zod";
-import { Proxy } from "@/lib/generated/prisma";
+import { Button } from "@/components/ui/button";
+import { PencilIcon, TrashIcon } from "lucide-react";
+import EditWebSiteDialog from "./WebSiteSourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
-import { PencilIcon } from "lucide-react";
-import { TrashIcon } from "lucide-react";
+import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
 
 interface Props {
-  sources: (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
+  sources: (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
   proxies: Proxy[];
 }
 
-const SocialMediaTable = ({ sources, proxies }: Props) => {
+const WebSites = ({ sources, proxies }: Props) => {
   return (
     <Table>
       <TableHeader>
@@ -29,33 +25,31 @@ const SocialMediaTable = ({ sources, proxies }: Props) => {
           <TableHead>ID</TableHead>
           <TableHead>Name</TableHead>
           <TableHead>Description</TableHead>
-          <TableHead>Type</TableHead>
+          <TableHead>URL</TableHead>
           <TableHead>Proxy</TableHead>
           <TableHead>Action</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {sources.map((source, index) => (
-          <TableRow key={index}>
+          <TableRow key={source.id}>
             <TableCell>{index + 1}</TableCell>
             <TableCell>{source.name}</TableCell>
-            <TableCell>{source.description}</TableCell>
-            <TableCell>{source.social.platform}</TableCell>
+            <TableCell className="max-w-[200px] truncate">
+              {source.description}
+            </TableCell>
+            <TableCell>{source.web?.url}</TableCell>
             <TableCell>{source.proxy?.name}</TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
-                <EditSocialMediaDialog
-                  proxies={proxies}
-                  source={
-                    source as Source & {
-                      social: z.infer<typeof SocialConfigByPlatform>;
-                    } & { proxy: Proxy }
-                  }
+                <EditWebSiteDialog
                   triggerButton={
                     <Button size="sm" variant="outline">
                       <PencilIcon className="size-3" />
                     </Button>
                   }
+                  source={source}
+                  proxies={proxies}
                 />
                 <SourceDeleteAlert
                   source={source}
@@ -74,4 +68,4 @@ const SocialMediaTable = ({ sources, proxies }: Props) => {
   );
 };
 
-export default SocialMediaTable;
+export default WebSites;

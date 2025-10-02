@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Card,
@@ -7,49 +9,49 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PlusIcon, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Source, SocialMediaSourceConfig, Proxy } from "@/lib/generated/prisma";
-import EditSocialMediaDialog from "./SocialMediaDialog";
-import SocialMediaTable from "./SocialMedia";
+import { Search, PlusIcon } from "lucide-react";
+import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
+import WebSiteSourceDialog from "./WebSiteSourceDialog";
+import WebSites from "./WebSiteSources";
 
 interface Props {
-  sources: (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
+  sources: (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
   proxies: Proxy[];
 }
 
-const SocialMediaSetting = ({ sources, proxies }: Props) => {
+const WebSiteSettingCard = ({ sources, proxies }: Props) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage Social Media</CardTitle>
+        <CardTitle>Manage Web Sites</CardTitle>
         <CardDescription>
-          You can manage information sources from the social media here.
+          You can manage information sources from the web site here.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 mb-4">
           <div className="relative flex-1">
             <Input
-              placeholder="Search social media..."
+              placeholder="Search web sites..."
               className="pl-9 bg-muted border-none"
               icon={<Search size={16} />}
             />
           </div>
-          <EditSocialMediaDialog
+          <WebSiteSourceDialog
             proxies={proxies}
             triggerButton={
               <Button>
                 <PlusIcon />
-                Add Social Media
+                Add Web Site
               </Button>
             }
           />
         </div>
-        <SocialMediaTable sources={sources} proxies={proxies} />
+        <WebSites sources={sources} proxies={proxies} />
       </CardContent>
     </Card>
   );
 };
 
-export default SocialMediaSetting;
+export default WebSiteSettingCard;

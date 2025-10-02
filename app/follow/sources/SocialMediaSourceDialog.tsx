@@ -27,7 +27,7 @@ interface Props {
   };
 }
 
-const EditSocialMediaDialog = ({ triggerButton, proxies, source }: Props) => {
+const SocialMediaSourceDialog = ({ triggerButton, proxies, source }: Props) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const makeDefaultSocial = (): z.infer<typeof SocialConfigByPlatform> => {
@@ -276,4 +276,4 @@ const EditSocialMediaDialog = ({ triggerButton, proxies, source }: Props) => {
   );
 };
 
-export default EditSocialMediaDialog;
+export default SocialMediaSourceDialog;

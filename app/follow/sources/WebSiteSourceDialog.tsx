@@ -24,7 +24,7 @@ interface Props {
   proxies: Proxy[];
 }
 
-const EditWebSiteDialog = ({ triggerButton, source, proxies }: Props) => {
+const WebSiteSourceDialog = ({ triggerButton, source, proxies }: Props) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const {
@@ -206,4 +206,4 @@ const EditWebSiteDialog = ({ triggerButton, source, proxies }: Props) => {
   );
 };
 
-export default EditWebSiteDialog;
+export default WebSiteSourceDialog;
