@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -18,48 +20,40 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon, PlusIcon } from "lucide-react";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Source, DarknetSourceConfig, Proxy } from "@/lib/generated/prisma";
+import { DarknetSourceCreateSchema } from "@/app/api/_utils/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import SelectProxy from "./SelectProxy";
+import { SettingEditDialog } from "@/components/SettingEditDialog";
+import ErrorMessage from "@/components/ErrorMessage";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import SourceDeleteAlert from "./SourceDeleteAlert";
 
-interface DarknetSource {
-  id: string;
-  label: string;
-  desc: string;
-  url: string;
+interface Props {
+  sources: (Source & { darknet: DarknetSourceConfig & { proxy: Proxy } })[];
+  proxies: Proxy[];
 }
 
-const DarknetSettingCard = () => {
-  const darknetSources: DarknetSource[] = [
-    {
-      id: "1",
-      label: "Ahmia Search Engine",
-      desc: "Ahmia is a popular dark web search engine that indexes .onion websites, making them accessible through the Tor network.",
-      url: "http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion/",
-    },
-    {
-      id: "2",
-      label: "Darknet Search Engine",
-      desc: "Darknet Search Engine is a popular dark web search engine that indexes .onion websites, making them accessible through the Tor network.",
-      url: "http://darknetsearchengine.onion/",
-    },
-  ];
+const DarknetSettingCard = ({ sources, proxies }: Props) => {
+  // const darknetSources: DarknetSource[] = [
+  //   {
+  //     id: "1",
+  //     label: "Ahmia Search Engine",
+  //     desc: "Ahmia is a popular dark web search engine that indexes .onion websites, making them accessible through the Tor network.",
+  //     url: "http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion/",
+  //   },
+  //   {
+  //     id: "2",
+  //     label: "Darknet Search Engine",
+  //     desc: "Darknet Search Engine is a popular dark web search engine that indexes .onion websites, making them accessible through the Tor network.",
+  //     url: "http://darknetsearchengine.onion/",
+  //   },
+  // ];
   return (
     <Card>
       <CardHeader>
@@ -77,7 +71,15 @@ const DarknetSettingCard = () => {
               icon={<Search size={16} />}
             />
           </div>
-          <AddDarknetSourceDialog />
+          <DarknetSourceDialog
+            proxies={proxies}
+            triggerButton={
+              <Button>
+                <PlusIcon />
+                Add Darknet Source
+              </Button>
+            }
+          />
         </div>
         <Table>
           <TableHeader>
@@ -86,30 +88,43 @@ const DarknetSettingCard = () => {
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Domain</TableHead>
-              <TableHead>Network Environment</TableHead>
+              <TableHead>Proxy</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {darknetSources.map((darknetSource: DarknetSource) => (
-              <TableRow key={darknetSource.id}>
-                <TableCell>{darknetSource.id}</TableCell>
-                <TableCell>{darknetSource.label}</TableCell>
+            {sources.map((source, index) => (
+              <TableRow key={source.id}>
+                <TableCell>{index + 1}</TableCell>
+                <TableCell>{source.name}</TableCell>
                 <TableCell className="max-w-xs whitespace-normal">
-                  {darknetSource.desc}
+                  {source.description}
                 </TableCell>
                 <TableCell className="max-w-xs break-all whitespace-normal">
-                  <span className="text-sm">{darknetSource.url}</span>
+                  <span className="text-sm">{source.darknet.url}</span>
                 </TableCell>
-                <TableCell>Proxy</TableCell>
+                <TableCell>
+                  {source.darknet.proxyId ? source.darknet.proxy.name : "None"}
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline">
-                      <PencilIcon className="size-3" />
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <TrashIcon className="size-3" />
-                    </Button>
+                    <DarknetSourceDialog
+                      proxies={proxies}
+                      source={source}
+                      triggerButton={
+                        <Button size="sm" variant="outline">
+                          <PencilIcon className="size-3" />
+                        </Button>
+                      }
+                    />
+                    <SourceDeleteAlert
+                      source={source}
+                      triggerButton={
+                        <Button size="sm" variant="outline">
+                          <TrashIcon className="size-3" />
+                        </Button>
+                      }
+                    />
                   </div>
                 </TableCell>
               </TableRow>
@@ -121,73 +136,120 @@ const DarknetSettingCard = () => {
   );
 };
 
-const AddDarknetSourceDialog = () => {
+const DarknetSourceDialog = ({
+  proxies,
+  source,
+  triggerButton,
+}: {
+  proxies: Proxy[];
+  source?: Source & { darknet: DarknetSourceConfig & { proxy: Proxy } };
+  triggerButton: React.ReactNode;
+}) => {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(DarknetSourceCreateSchema),
+    defaultValues: {
+      name: source?.name || "",
+      description: source?.description || "",
+      type: "DARKNET",
+      active: source?.active || true,
+      rateLimit: source?.rateLimit || 10,
+      darknet: {
+        url: source?.darknet?.url || "",
+        proxyId: source?.darknet?.proxyId || "",
+      },
+    },
+  });
+  const onSubmit = async (data: z.infer<typeof DarknetSourceCreateSchema>) => {
+    console.log(data);
+    const endpoint = source
+      ? `/api/follow/sources/${source.id}`
+      : "/api/follow/sources";
+    const method = source ? "PATCH" : "POST";
+    const body = JSON.stringify(data);
+    await fetch(endpoint, { method, body })
+      .then((res) => {
+        if (res.ok) {
+          toast.success(
+            source
+              ? "Darknet source updated successfully"
+              : "Darknet source added successfully"
+          );
+          setOpen(false);
+          setTimeout(() => {
+            router.refresh();
+          }, 200);
+        } else {
+          toast.error(
+            source
+              ? "Failed to update darknet source"
+              : "Failed to add darknet source"
+          );
+        }
+      })
+      .catch((err) => {
+        toast.error(
+          source
+            ? "Failed to update darknet source"
+            : "Failed to add darknet source"
+        );
+      });
+  };
   return (
-    <Dialog>
-      <form>
-        <DialogTrigger asChild>
-          <Button>
-            <PlusIcon />
-            Add Darknet Source
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Darknet Source</DialogTitle>
-            <DialogDescription>
-              Add a new darknet source to your list.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4">
-            <div className="grid gap-3">
-              <Label htmlFor="keyword">Name</Label>
-              <Input id="keyword" placeholder="Name" required />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Description"
-                required
-                rows={3}
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="url">Domain</Label>
-              <Input
-                id="url"
-                placeholder="https://xxxxxxxxxxxxxxxx.onion"
-                required
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="network-environment">Network Environment</Label>
-              <Select required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a network environment" />
-                </SelectTrigger>
-                <SelectContent>
-                  {/* {networkEnvironments.map((networkEnvironment) => (
-                    <SelectItem
-                      key={networkEnvironment.id}
-                      value={networkEnvironment.id}
-                    >
-                      {networkEnvironment.label}
-                    </SelectItem>
-                  ))} */}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button>Add</Button>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </form>
-    </Dialog>
+    <SettingEditDialog
+      props={{ open, onOpenChange: setOpen }}
+      title={source ? "Edit Darknet Source" : "Add Darknet Source"}
+      description={
+        source
+          ? "Edit a darknet source"
+          : "Add a new darknet source to your list."
+      }
+      triggerButton={triggerButton}
+      buttonText={source ? "Update" : "Add"}
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <div className="grid gap-4">
+        <div className="grid gap-3">
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" placeholder="Name" required {...register("name")} />
+          <ErrorMessage>{errors.name?.message}</ErrorMessage>
+        </div>
+        <div className="grid gap-3">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            placeholder="Description"
+            required
+            rows={3}
+            {...register("description")}
+          />
+          <ErrorMessage>{errors.description?.message}</ErrorMessage>
+        </div>
+        <div className="grid gap-3">
+          <Label htmlFor="darknet.url">Domain</Label>
+          <Input
+            id="darknet.url"
+            placeholder="https://xxxxxxxxxxxxxxxx.onion"
+            required
+            {...register("darknet.url")}
+          />
+          <ErrorMessage>{errors.darknet?.url?.message}</ErrorMessage>
+        </div>
+        <SelectProxy
+          control={control}
+          proxies={proxies}
+          name="darknet.proxyId"
+          error={errors.darknet?.proxyId?.message}
+          required={true}
+        />
+      </div>
+    </SettingEditDialog>
   );
 };
 

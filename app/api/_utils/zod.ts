@@ -158,7 +158,7 @@ export const DarknetConfigInput = z.object({
   }, z.record(z.string(), z.string()).optional().nullable()),
   crawlerEngine: CrawlerEngineEnum.optional().default("FETCH"),
   // Darknet 通常强制使用代理（TOR/SOCKS5）
-  proxyId: cuid,
+   proxyId: cuid, // 改为必需
   render: z.boolean().optional().default(false),
   parseRules: z.preprocess((val) => {
     if (typeof val === "string") {
@@ -230,7 +230,6 @@ export const WebSourceCreateSchema = SourceBaseCreate.extend({
 
 export const DarknetSourceCreateSchema = SourceBaseCreate.extend({
   type: z.literal("DARKNET"),
-  proxyId: cuid,
   darknet: DarknetConfigInput,
 });
 

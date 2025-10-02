@@ -22,7 +22,7 @@ const Sources = async () => {
     include: {
       web: true,
       social: true,
-      darknet: true,
+      darknet: { include: { proxy: true } },
       search: true,
       proxy: true,
       credential: true,
@@ -36,7 +36,7 @@ const Sources = async () => {
   ) as (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
   const darknet = sources.filter(
     (source) => source.type === "DARKNET"
-  ) as (Source & { darknet: DarknetSourceConfig } & { proxy: Proxy })[];
+  ) as (Source & { darknet: DarknetSourceConfig & { proxy: Proxy } })[];
   const searchEngines = sources.filter(
     (source) => source.type === "SEARCH_ENGINE"
   ) as (Source & { search: SearchEngineSourceConfig } & { proxy: Proxy })[];
@@ -58,7 +58,7 @@ const Sources = async () => {
           <SocialMediaSetting sources={socialMedia} proxies={proxies} />
         </TabsContent>
         <TabsContent value="darknet">
-          <DarknetSettingCard />
+          <DarknetSettingCard sources={darknet} proxies={proxies} />
         </TabsContent>
         <TabsContent value="search-engines">
           <SearchEngineSettingCard />

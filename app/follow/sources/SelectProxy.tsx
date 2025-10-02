@@ -12,21 +12,29 @@ interface Props {
   control: Control<any>;
   proxies: Proxy[];
   error?: string;
+  required?: boolean;
+  name?: string; // 允许自定义字段名
 }
 
-const SelectProxy = ({ control, proxies, error }: Props) => {
+const SelectProxy = ({
+  control,
+  proxies,
+  error,
+  required,
+  name = "proxyId",
+}: Props) => {
   return (
     <div className="grid gap-3">
-      <Label htmlFor="proxyId">Proxy</Label>
+      <Label htmlFor={name}>Proxy</Label>
       <Controller
-        name="proxyId"
+        name={name}
         control={control}
         render={({ field }) => (
           <ControlledSelect
             value={field.value}
             onValueChange={field.onChange}
             placeholder="Select a proxy"
-            nullValue="none"
+            nullValue={required ? "" : "none"}
           >
             {proxies.map((proxy: Proxy) => (
               <SelectItem key={proxy.id} value={proxy.id}>
