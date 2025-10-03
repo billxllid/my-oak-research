@@ -173,7 +173,7 @@ export const SearchEngineConfigInput = z.object({
   query: z.string().min(1),
   region: z.string().optional().nullable(),
   lang: LangEnum,
-  apiEndpoint: z.string().url().optional().nullable(),
+  apiEndpoint: z.url().optional().nullable(),
   options: z.record(z.string(), z.any()).optional().nullable(),
   credentialId: cuidOpt,
 });

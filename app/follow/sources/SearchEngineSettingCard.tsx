@@ -18,43 +18,26 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { PlusIcon } from "lucide-react";
+import { Source, Proxy } from "@/lib/generated/prisma";
+import { SearchEngineSourceConfig } from "@/lib/generated/prisma";
+import SearchEngineSourceDialog from "./SearchEngineSourceDialog";
+import SourceDeleteAlert from "./SourceDeleteAlert";
 
-interface SearchEngine {
-  id: string;
-  label: string;
-  desc: string;
-  url: string;
+interface Props {
+  sources: (Source & { search: SearchEngineSourceConfig } & { proxy: Proxy })[];
+  proxies: Proxy[];
 }
 
-const SearchEngineSettingCard = () => {
-  const searchEngines: SearchEngine[] = [
-    {
-      id: "1",
-      label: "Google",
-      desc: "Google is a search engine that indexes the web.",
-      url: "https://www.google.com",
-    },
-  ];
+const SearchEngineSettingCard = ({ sources, proxies }: Props) => {
+  // const searchEngines: SearchEngine[] = [
+  //   {
+  //     id: "1",
+  //     label: "Google",
+  //     desc: "Google is a search engine that indexes the web.",
+  //     url: "https://www.google.com",
+  //   },
+  // ];
   return (
     <Card>
       <CardHeader>
@@ -70,7 +53,15 @@ const SearchEngineSettingCard = () => {
               icon={<Search size={16} />}
             />
           </div>
-          <AddSearchEngineDialog />
+          <SearchEngineSourceDialog
+            triggerButton={
+              <Button>
+                <PlusIcon />
+                Add Search Engine
+              </Button>
+            }
+            proxies={proxies}
+          />
         </div>
         <Table>
           <TableHeader>
@@ -79,102 +70,58 @@ const SearchEngineSettingCard = () => {
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Domain</TableHead>
+              <TableHead>Proxy</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {searchEngines.map((searchEngine: SearchEngine) => (
-              <TableRow key={searchEngine.id}>
-                <TableCell>{searchEngine.id}</TableCell>
-                <TableCell>{searchEngine.label}</TableCell>
-                <TableCell className="max-w-xs whitespace-normal">
-                  {searchEngine.desc}
-                </TableCell>
-                <TableCell className="max-w-xs break-all whitespace-normal">
-                  <span className="text-sm">{searchEngine.url}</span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline">
-                      <PencilIcon className="size-3" />
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <TrashIcon className="size-3" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {sources.map(
+              (
+                source: Source & { search: SearchEngineSourceConfig } & {
+                  proxy: Proxy;
+                },
+                index
+              ) => (
+                <TableRow key={source.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{source.name}</TableCell>
+                  <TableCell className="max-w-xs whitespace-normal">
+                    {source.description}
+                  </TableCell>
+                  <TableCell className="max-w-xs break-all whitespace-normal">
+                    <span className="text-sm">{source.search.query}</span>
+                  </TableCell>
+                  <TableCell>
+                    {source.proxy ? source.proxy?.name : ""}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <SearchEngineSourceDialog
+                        triggerButton={
+                          <Button size="sm" variant="outline">
+                            <PencilIcon className="size-3" />
+                          </Button>
+                        }
+                        proxies={proxies}
+                        source={source}
+                      />
+                      <SourceDeleteAlert
+                        source={source}
+                        triggerButton={
+                          <Button size="sm" variant="outline">
+                            <TrashIcon className="size-3" />
+                          </Button>
+                        }
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            )}
           </TableBody>
         </Table>
       </CardContent>
     </Card>
-  );
-};
-
-const AddSearchEngineDialog = () => {
-  return (
-    <Dialog>
-      <form>
-        <DialogTrigger asChild>
-          <Button>
-            <PlusIcon />
-            Add Search Engine
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Search Engine</DialogTitle>
-            <DialogDescription>
-              Add a new search engine to your list.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4">
-            <div className="grid gap-3">
-              <Label htmlFor="keyword">Name</Label>
-              <Input id="keyword" placeholder="Name" required />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Description"
-                required
-                rows={3}
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="url">Domain</Label>
-              <Input id="url" placeholder="https://www.google.com" required />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="network-environment">Network Environment</Label>
-              <Select required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a network environment" />
-                </SelectTrigger>
-                <SelectContent>
-                  {/* {networkEnvironments.map((networkEnvironment) => (
-                    <SelectItem
-                      key={networkEnvironment.id}
-                      value={networkEnvironment.id}
-                    >
-                      {networkEnvironment.label}
-                    </SelectItem>
-                  ))} */}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button>Add</Button>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </form>
-    </Dialog>
   );
 };
 
