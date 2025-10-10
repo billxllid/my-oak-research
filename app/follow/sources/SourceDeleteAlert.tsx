@@ -16,7 +16,7 @@ const SourceDeleteAlert = ({ source, triggerButton }: Props) => {
     await fetch(`/api/follow/sources/${source.id}`, {
       method: "DELETE",
     })
-      .then((res) => {
+      .then(async (res) => {
         if (res.ok) {
           toast.success("Source deleted successfully");
           setTimeout(() => {
