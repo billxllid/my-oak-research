@@ -37,7 +37,7 @@ export async function GET(req: Request) {
         take: pageSize,
         include: {
           web: true,
-          darknet: true,
+          darknet: { include: { proxy: true } },
           search: true,
           social: true,
           proxy: true,
@@ -144,7 +144,7 @@ export async function POST(req: Request) {
         where: { id: base.id },
         include: {
           web: true,
-          darknet: true,
+          darknet: { include: { proxy: true } },
           search: true,
           social: true,
           proxy: true,

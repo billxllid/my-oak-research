@@ -58,7 +58,7 @@ const Sources = async () => {
           <SocialMediaSettingCard sources={socialMedia} proxies={proxies} />
         </TabsContent>
         <TabsContent value="darknet">
-          <DarknetSettingCardCard sources={darknet} proxies={proxies} />
+          <DarknetSettingCardCard initialSources={darknet} proxies={proxies} />
         </TabsContent>
         <TabsContent value="search-engines">
           <SearchEngineSettingCard sources={searchEngines} proxies={proxies} />

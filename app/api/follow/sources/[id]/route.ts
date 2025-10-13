@@ -22,7 +22,7 @@ export async function GET(
       where: { id },
       include: {
         web: true,
-        darknet: true,
+        darknet: { include: { proxy: true } },
         search: true,
         social: true,
         proxy: true,
@@ -53,7 +53,12 @@ export async function PATCH(
 
     const exists = await prisma.source.findUnique({
       where: { id },
-      include: { web: true, darknet: true, search: true, social: true },
+      include: {
+        web: true,
+        darknet: { include: { proxy: true } },
+        search: true,
+        social: true,
+      },
     });
     if (!exists) return notFound("Source not found");
 
@@ -169,7 +174,7 @@ export async function PATCH(
         where: { id },
         include: {
           web: true,
-          darknet: true,
+          darknet: { include: { proxy: true } },
           search: true,
           social: true,
           proxy: true,

@@ -107,6 +107,7 @@ const SearchEngineSettingCard = ({ sources, proxies }: Props) => {
                       />
                       <SourceDeleteAlert
                         source={source}
+                        queryKeyType="SEARCH_ENGINE"
                         triggerButton={
                           <Button size="sm" variant="outline">
                             <TrashIcon className="size-3" />

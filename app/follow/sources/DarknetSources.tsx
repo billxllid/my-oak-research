@@ -60,6 +60,7 @@ const DarknetSources = ({ sources, proxies }: Props) => {
                 />
                 <SourceDeleteAlert
                   source={source}
+                  queryKeyType="DARKNET"
                   triggerButton={
                     <Button size="sm" variant="outline">
                       <TrashIcon className="size-3" />

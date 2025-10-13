@@ -2,7 +2,6 @@ import { SettingEditDialog } from "@/components/SettingEditDialog";
 import { Proxy } from "@/lib/generated/prisma";
 import { Source } from "@/lib/generated/prisma";
 import { DarknetSourceConfig } from "@/lib/generated/prisma";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,6 +13,31 @@ import SelectProxy from "./SelectProxy";
 import ErrorMessage from "@/components/ErrorMessage";
 import { toast } from "sonner";
 import { DarknetSourceCreateSchema } from "@/app/api/_utils/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Mutation function for React Query
+async function submitDarknetSource(data: {
+  formData: z.infer<typeof DarknetSourceCreateSchema>;
+  endpoint: string;
+  isUpdate: boolean;
+}) {
+  const { formData, endpoint, isUpdate } = data;
+
+  const response = await fetch(endpoint, {
+    method: isUpdate ? "PATCH" : "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(formData),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || "Failed to submit darknet source");
+  }
+
+  return response.json();
+}
 
 const DarknetSourceDialog = ({
   proxies,
@@ -24,13 +48,51 @@ const DarknetSourceDialog = ({
   source?: Source & { darknet: DarknetSourceConfig & { proxy: Proxy } };
   triggerButton: React.ReactNode;
 }) => {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Setup React Query mutation
+  const endpoint = source
+    ? `/api/follow/sources/${source.id}`
+    : "/api/follow/sources";
+
+  const mutation = useMutation({
+    mutationFn: submitDarknetSource,
+    onSuccess: () => {
+      // Show success message
+      toast.success(
+        source
+          ? "Darknet source updated successfully"
+          : "Darknet source added successfully"
+      );
+
+      // Close dialog
+      setOpen(false);
+
+      // Invalidate and refetch queries
+      queryClient.invalidateQueries({ queryKey: ["sources", "DARKNET"] });
+      if (source) {
+        queryClient.invalidateQueries({ queryKey: ["source", source.id] });
+      }
+    },
+    onError: (error: Error) => {
+      // Enhanced error handling
+      console.error("Failed to submit darknet source:", error);
+      toast.error(
+        error.message ||
+          (source
+            ? "Failed to update darknet source"
+            : "Failed to add darknet source")
+      );
+    },
+  });
+
   const {
     control,
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(DarknetSourceCreateSchema),
     defaultValues: {
@@ -45,40 +107,26 @@ const DarknetSourceDialog = ({
       },
     },
   });
+
   const onSubmit = async (data: z.infer<typeof DarknetSourceCreateSchema>) => {
-    console.log(data);
-    const endpoint = source
-      ? `/api/follow/sources/${source.id}`
-      : "/api/follow/sources";
-    const method = source ? "PATCH" : "POST";
-    const body = JSON.stringify(data);
-    await fetch(endpoint, { method, body })
-      .then((res) => {
-        if (res.ok) {
-          toast.success(
-            source
-              ? "Darknet source updated successfully"
-              : "Darknet source added successfully"
-          );
-          setOpen(false);
-          setTimeout(() => {
-            router.refresh();
-          }, 200);
-        } else {
-          toast.error(
-            source
-              ? "Failed to update darknet source"
-              : "Failed to add darknet source"
-          );
-        }
-      })
-      .catch((err) => {
-        toast.error(
-          source
-            ? "Failed to update darknet source"
-            : "Failed to add darknet source"
-        );
-      });
+    // Reset form for new entries on success
+    const handleSuccess = () => {
+      if (!source) {
+        reset();
+      }
+    };
+
+    // Trigger mutation
+    mutation.mutate(
+      {
+        formData: data,
+        endpoint,
+        isUpdate: !!source,
+      },
+      {
+        onSuccess: handleSuccess,
+      }
+    );
   };
   return (
     <SettingEditDialog
@@ -90,7 +138,15 @@ const DarknetSourceDialog = ({
           : "Add a new darknet source to your list."
       }
       triggerButton={triggerButton}
-      buttonText={source ? "Update" : "Add"}
+      buttonText={
+        mutation.isPending
+          ? source
+            ? "Updating..."
+            : "Adding..."
+          : source
+          ? "Update"
+          : "Add"
+      }
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="grid gap-4">

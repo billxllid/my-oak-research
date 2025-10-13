@@ -59,6 +59,7 @@ const SocialMediaSources = ({ sources, proxies }: Props) => {
                 />
                 <SourceDeleteAlert
                   source={source}
+                  queryKeyType="SOCIAL_MEDIA"
                   triggerButton={
                     <Button size="sm" variant="outline">
                       <TrashIcon className="size-3" />

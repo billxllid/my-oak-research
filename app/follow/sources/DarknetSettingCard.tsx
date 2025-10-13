@@ -15,27 +15,51 @@ import { PlusIcon } from "lucide-react";
 import { Source, DarknetSourceConfig, Proxy } from "@/lib/generated/prisma";
 import DarknetSources from "./DarknetSources";
 import DarknetSourceDialog from "./DarknetSourceDialog";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
-  sources: (Source & { darknet: DarknetSourceConfig & { proxy: Proxy } })[];
   proxies: Proxy[];
+  initialSources?: (Source & {
+    darknet: DarknetSourceConfig & { proxy: Proxy };
+  })[];
 }
 
-const DarknetSettingCard = ({ sources, proxies }: Props) => {
-  // const darknetSources: DarknetSource[] = [
-  //   {
-  //     id: "1",
-  //     label: "Ahmia Search Engine",
-  //     desc: "Ahmia is a popular dark web search engine that indexes .onion websites, making them accessible through the Tor network.",
-  //     url: "http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion/",
-  //   },
-  //   {
-  //     id: "2",
-  //     label: "Darknet Search Engine",
-  //     desc: "Darknet Search Engine is a popular dark web search engine that indexes .onion websites, making them accessible through the Tor network.",
-  //     url: "http://darknetsearchengine.onion/",
-  //   },
-  // ];
+// Fetcher function for sources
+async function fetchSources() {
+  const response = await fetch("/api/follow/sources?type=DARKNET");
+  if (!response.ok) {
+    throw new Error("Failed to fetch sources");
+  }
+  const data = await response.json();
+  return data.items;
+}
+
+const DarknetSettingCard = ({ proxies, initialSources }: Props) => {
+  // Use React Query to fetch sources data
+  const {
+    data: sources,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["sources", "DARKNET"],
+    queryFn: fetchSources,
+    initialData: initialSources,
+  });
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Manage Darknet Sources</CardTitle>
+          <CardDescription>
+            Error loading darknet sources. Please try again.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -63,7 +87,27 @@ const DarknetSettingCard = ({ sources, proxies }: Props) => {
             }
           />
         </div>
-        <DarknetSources sources={sources} proxies={proxies} />
+
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        ) : (
+          <DarknetSources
+            sources={
+              sources?.filter(
+                (
+                  s: Source & {
+                    darknet: DarknetSourceConfig & { proxy: Proxy };
+                  }
+                ) => s.type === "DARKNET" && s.darknet
+              ) || []
+            }
+            proxies={proxies}
+          />
+        )}
       </CardContent>
     </Card>
   );

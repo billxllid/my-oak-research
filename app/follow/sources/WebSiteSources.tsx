@@ -53,6 +53,7 @@ const WebSites = ({ sources, proxies }: Props) => {
                 />
                 <SourceDeleteAlert
                   source={source}
+                  queryKeyType="WEB"
                   triggerButton={
                     <Button size="sm" variant="outline">
                       <TrashIcon className="size-3" />
