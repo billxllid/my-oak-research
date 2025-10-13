@@ -124,7 +124,7 @@ apps/web/app/(report-writer)/
 
 ### 6.2 数据流
 
-- 所有数据请求通过 **SWR** 管理缓存
+- 所有数据请求通过 **React Query** 管理缓存
 - 报告生成与 AI 对话必须走 **统一 LLM Gateway**（`@llm-gateway.mdc`）
 
 ## 7. 表单与校验

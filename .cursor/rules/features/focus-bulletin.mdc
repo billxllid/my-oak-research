@@ -89,9 +89,12 @@ apps/web/app/(focus-bulletin)/
 
 ### 5.1 数据获取
 
-- 使用 **SWR** 获取数据，统一 fetcher：
+- 使用 **React Query** 获取数据，统一 fetcher：
   ```ts
-  const { data, error, isLoading } = useSWR("/api/focus-bulletin/content");
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["/api/focus-bulletin/content"],
+    queryFn: () => apiFetcher("/api/focus-bulletin/content"),
+  });
   ```
 
 * 关注设置的表格数据分页获取：
@@ -102,7 +105,7 @@ apps/web/app/(focus-bulletin)/
 ### 5.2 自动更新
 
 - 系统会按照用户设置的频率定时抓取内容。
-- 前端刷新依赖 SWR 的 `mutate` 机制，不用手动刷新。
+- 前端刷新依赖 React Query 的 `queryClient.invalidateQueries()` 机制，不用手动刷新。
 
 ### 5.3 收藏功能
 

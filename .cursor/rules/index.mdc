@@ -29,13 +29,13 @@ alwaysApply: true
 
 ### Backend & API
 
-| 规则文件                | 描述                     |
-| ----------------------- | ------------------------ |
-| `@api-routes.mdc`       | Next.js API 路由设计规范 |
-| `@server-actions.mdc`   | Server Actions 实现规范  |
-| `@data-fetching.mdc`    | SWR 数据获取与缓存策略   |
-| `@proxy-management.mdc` | 代理资源管理 API 规范    |
-| `@llm-gateway.mdc`      | LLM 服务网关设计规范     |
+| 规则文件                | 描述                           |
+| ----------------------- | ------------------------------ |
+| `@api-routes.mdc`       | Next.js API 路由设计规范       |
+| `@server-actions.mdc`   | Server Actions 实现规范        |
+| `@data-fetching.mdc`    | React Query 数据获取与缓存策略 |
+| `@proxy-management.mdc` | 代理资源管理 API 规范          |
+| `@llm-gateway.mdc`      | LLM 服务网关设计规范           |
 
 ### AI / LLM
 

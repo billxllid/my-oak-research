@@ -1,5 +1,5 @@
 ---
-description: 数据获取与缓存规范（SWR/Fetcher/错误重试/占位骨架/乐观更新/标签化缓存/示例）
+description: 数据获取与缓存规范（React Query/Fetcher/错误重试/占位骨架/乐观更新/标签化缓存/示例）
 globs:
   - "apps/web/**"
   - "packages/**"
@@ -8,30 +8,56 @@ alwaysApply: true
 
 # Oak Research - 数据获取与缓存规范
 
-本规范统一 SWR 数据获取、全局 fetcher、错误与重试、乐观更新、骨架屏、与服务器端 revalidate 的配合方式，确保前端数据一致性与用户体验。
+本规范统一 React Query 数据获取、全局 fetcher、错误与重试、乐观更新、骨架屏、与服务器端 revalidate 的配合方式，确保前端数据一致性与用户体验。
 
-## 1. SWR 基础配置
+## 1. React Query 基础配置
 
-- 在 `apps/web/app/providers.tsx` 中配置全局 SWR：
+- 在 `app/QueryClientProvider.tsx` 中配置全局 React Query：
 
 ```tsx
-<SWRConfig
-  value={{
-    fetcher: apiFetcher,
-    errorRetryCount: 2,
-    errorRetryInterval: 2000,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    shouldRetryOnError: (err) => err?.status !== 401 && err?.status !== 403,
-  }}
->
-  {children}
-</SWRConfig>
+"use client";
+
+import React from "react";
+import {
+  QueryClient,
+  QueryClientProvider as ReactQueryClientProvider,
+} from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+    mutations: {
+      retry: 1,
+      onError: (err: any) => {
+        // 401/403 不重试
+        if (err?.status === 401 || err?.status === 403) {
+          return false;
+        }
+      },
+    },
+  },
+});
+
+const QueryClientProvider = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <ReactQueryClientProvider client={queryClient}>
+      {children}
+    </ReactQueryClientProvider>
+  );
+};
+
+export default QueryClientProvider;
 ```
 
 ## 2. 全局 Fetcher
 
-- 统一放在 `apps/web/lib/fetcher.ts`
+- 统一放在 `lib/fetcher.ts`
 
 ```ts
 export async function apiFetcher(input: string | URL, init?: RequestInit) {
@@ -49,11 +75,11 @@ export async function apiFetcher(input: string | URL, init?: RequestInit) {
 }
 ```
 
-- 仅接受 `{ success: true }` 分支；错误统一抛出，由 SWR 或调用处处理
+- 仅接受 `{ success: true }` 分支；错误统一抛出，由 React Query 处理
 
-## 3. Key 组织与依赖
+## 3. Query Key 组织与依赖
 
-- Key 使用数组：`useSWR(["/api/focus-bulletin/content", params])`
+- Query Key 使用数组：`useQuery({ queryKey: ["/api/follow/sources", "DARKNET"] })`
 - 过滤条件对象必须稳定（序列化或使用 `useMemo`）
 - 级联：父 Key 变化时，子 Key 自动失效
 
@@ -65,51 +91,58 @@ export async function apiFetcher(input: string | URL, init?: RequestInit) {
 
 ## 5. 错误与重试
 
-- SWR 全局配置控制重试；401/403 不重试
+- React Query 全局配置控制重试；401/403 不重试
 - 组件内捕获错误后：
 
   - 弹出 toast：`toast.error(err.message)`
-  - 给出重试按钮：`mutate()` 或 `revalidate()`（SWR v2）
+  - 给出重试按钮：`refetch()` 或 `queryClient.invalidateQueries()`
 
-- 频繁失败的接口给出“降级提示”文案
+- 频繁失败的接口给出"降级提示"文案
 
 ## 6. 乐观更新与回滚
 
-- 使用 `mutate(key, updater, { optimisticData, rollbackOnError: true })`
+- 使用 `useMutation` 的 `onMutate` 进行乐观更新
+- 在 `onError` 中进行回滚：`queryClient.setQueryData(queryKey, previousData)`
 - 适用于收藏、点赞、名称变更等轻量写操作
 - 服务端失败则自动回滚并提示
 
 ## 7. 分页与无限滚动
 
-- 分页列表：`/api/... ?page=1&limit=20`，Key 包含页码
-- 无限滚动：使用 `useSWRInfinite`，Key 为 `getKey(pageIndex, prevPage)`
+- 分页列表：`/api/... ?page=1&limit=20`，Query Key 包含页码
+- 无限滚动：使用 `useInfiniteQuery`，`getNextPageParam` 返回下一页参数
 - 返回 `meta.nextCursor` 时优先 Cursor 模式；否则 page 模式
 
 ## 8. 与 Server Actions 协作
 
-- 写操作由 Action 完成后，前端调用 `mutate(listKey)` 或 `router.refresh()`
-- 服务端使用 `revalidatePath("/...")` 或 `revalidateTag("...")` 与前端 SWR 配合
+- 写操作由 Mutation 完成后，前端调用 `queryClient.invalidateQueries()`
+- 服务端使用 `revalidatePath("/...")` 或 `revalidateTag("...")` 与前端协作
 - 建议列表类页面使用 tag 化缓存（由服务端控制片段新鲜度）
 
 ## 9. 选择器与派生状态
 
-- 大列表中避免在渲染时做复杂计算，使用 memoized selector：
+- 大列表中避免在渲染时做复杂计算，使用 React Query 的 `select` 选项：
 
 ```ts
-const items = useMemo(() => data?.rows?.filter(...), [data, filters]);
+const { data: filteredItems } = useQuery({
+  queryKey: ["sources", "DARKNET"],
+  queryFn: fetchSources,
+  select: (data) => data?.filter((item) => item.active) || [],
+});
 ```
 
 - 搜索输入使用 `debounce`（300–500ms）
 
 ## 10. 统一 Hook 封装
 
-- 在 `apps/web/hooks/` 封装资源级 Hook，隐藏 URL 细节：
+- 在 `hooks/` 封装资源级 Hook，隐藏 URL 细节：
 
 ```ts
-export function useFocusContent(params) {
-  return useSWR(["/api/focus-bulletin/content", params], ([url, p]) =>
-    apiFetcher(`${url}?${new URLSearchParams(p)}`)
-  );
+export function useSources(type?: string) {
+  return useQuery({
+    queryKey: ["sources", type],
+    queryFn: () =>
+      apiFetcher(`/api/follow/sources${type ? `?type=${type}` : ""}`),
+  });
 }
 ```
 
@@ -140,17 +173,20 @@ type ContentQuery = {
 };
 
 export function useFocusContent(query: ContentQuery = { page: 1, limit: 20 }) {
-  return useSWR(["/api/focus-bulletin/content", query], async ([url, q]) => {
-    const u = new URL(
-      url,
-      typeof window === "undefined"
-        ? "http://localhost"
-        : window.location.origin
-    );
-    Object.entries(q).forEach(([k, v]) => {
-      if (v != null && v !== "") u.searchParams.set(k, String(v));
-    });
-    return apiFetcher(u.toString());
+  return useQuery({
+    queryKey: ["/api/focus-bulletin/content", query],
+    queryFn: async () => {
+      const u = new URL(
+        "/api/focus-bulletin/content",
+        typeof window === "undefined"
+          ? "http://localhost"
+          : window.location.origin
+      );
+      Object.entries(query).forEach(([k, v]) => {
+        if (v != null && v !== "") u.searchParams.set(k, String(v));
+      });
+      return apiFetcher(u.toString());
+    },
   });
 }
 ```
@@ -159,28 +195,51 @@ export function useFocusContent(query: ContentQuery = { page: 1, limit: 20 }) {
 
 ```ts
 export function useToggleFavorite() {
-  const key = ["/api/library/favorites"];
-  return async function toggle(id: string, next: boolean) {
-    await mutate(
-      key,
-      async (prev: any) => {
+  const queryClient = useQueryClient();
+  const queryKey = ["/api/library/favorites"];
+
+  return useMutation({
+    mutationFn: async ({ id, next }: { id: string; next: boolean }) => {
+      const response = await fetch("/api/focus-bulletin/favorites", {
+        method: next ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contentId: id }),
+      });
+      if (!response.ok) throw new Error("Failed to toggle favorite");
+      return response.json();
+    },
+    onMutate: async ({ id, next }) => {
+      // 取消正在进行的查询
+      await queryClient.cancelQueries({ queryKey });
+
+      // 获取之前的数据
+      const previousData = queryClient.getQueryData(queryKey);
+
+      // 乐观更新
+      queryClient.setQueryData(queryKey, (old: any) => {
+        if (!old) return old;
         const optimistic = next
-          ? { ...prev, items: [{ id, favored: true }, ...(prev?.items ?? [])] }
+          ? { ...old, items: [{ id, favored: true }, ...(old?.items ?? [])] }
           : {
-              ...prev,
-              items: (prev?.items ?? []).filter((x: any) => x.id !== id),
+              ...old,
+              items: (old?.items ?? []).filter((x: any) => x.id !== id),
             };
-        // fire & forget
-        fetch("/api/focus-bulletin/favorites", {
-          method: next ? "POST" : "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contentId: id }),
-        }).catch(() => {});
         return optimistic;
-      },
-      { revalidate: true, rollbackOnError: true }
-    );
-  };
+      });
+
+      return { previousData };
+    },
+    onError: (err, variables, context) => {
+      // 回滚
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData);
+      }
+    },
+    onSettled: () => {
+      // 重新获取数据
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
 }
 ```
 
@@ -192,6 +251,13 @@ export function useToggleFavorite() {
 
 ## 16. 测试
 
-- Hook 级单测：成功/失败/重试/乐观回滚
-- 组件级：骨架/空态/错误态渲染正确
+- Hook 级单测：成功/失败/重试/乐观回滚，使用 `@testing-library/react-hooks` + `QueryClient` mock
+- 组件级：骨架/空态/错误态渲染正确，包装组件在 `QueryClientProvider` 中
 - E2E：筛选条件与分页串联正确
+
+## 17. 开发约束
+
+- 禁止在组件内直接使用 `fetch`，必须通过 React Query
+- 新增资源必须定义对应的 Hook
+- 所有写操作必须使用 `useMutation`
+- Cursor 生成数据获取代码时，必须自动使用 React Query 模式

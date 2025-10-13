@@ -70,7 +70,7 @@ apps/web/app/(dashboard)/
 - 返回结构：`[{ id, title, summary, platform, time }]`
 - 渲染为列表卡片，点击可进入关注速报详情
 
-所有数据通过 **SWR** 获取，并缓存结果。
+所有数据通过 **React Query** 获取，并缓存结果。
 
 ## 5. UI 组件规范
 

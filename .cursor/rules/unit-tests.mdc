@@ -1,5 +1,5 @@
 ---
-description: Vitest 单元测试规范（目录/Mock/覆盖率/React Testing Library/Prisma/SWR）
+description: Vitest 单元测试规范（目录/Mock/覆盖率/React Testing Library/Prisma/React Query）
 globs:
   - "tests/unit/**"
   - "packages/**"
@@ -16,7 +16,7 @@ alwaysApply: true
 tests/unit/
 
 - utils/ 工具函数
-- hooks/ 自定义 hooks（SWR 等）
+- hooks/ 自定义 hooks（React Query 等）
 - components/ 纯展示组件
 - services/ LLM 网关/RAG/Orchestrator 的轻量逻辑
 - prisma/ 仓储层（如使用 repository 封装）
@@ -55,7 +55,7 @@ export default defineConfig({
 
 - Prisma：使用 `vi.mock("@oak/prisma", () => ({ prisma: createPrismaMock() }))`
 - LLM 网关与 RAG：`vi.mock("@oak/agents/llm-gateway")`，返回稳定 JSON
-- SWR：对 fetcher 进行桩，或使用 `SWRConfig` 的 `provider` 注入内存缓存
+- React Query：对 fetcher 进行桩，或使用 `QueryClient` 的内存缓存
 - 时间：`vi.setSystemTime(new Date("2025-01-01T00:00:00Z"))`
 - 随机：`vi.spyOn(globalThis.crypto, "getRandomValues").mock...` 保持稳定
 
@@ -69,18 +69,22 @@ import { groupBy } from "lodash";
 import { stableId } from "@oak/utils/id";
 ```
 
-## 5. Hooks 测试（SWR）
+## 5. Hooks 测试（React Query）
 
-- 使用 `renderHook` + `SWRConfig` 包裹，注入测试 fetcher
+- 使用 `renderHook` + `QueryClientProvider` 包裹，注入测试 QueryClient
 
 ```tsx
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+    mutations: { retry: false },
+  },
+});
+
 const wrapper = ({ children }) => (
-  <SWRConfig
-    value={{ provider: () => new Map(), dedupingInterval: 0, fetcher: fn }}
-  >
-    {children}
-  </SWRConfig>
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
+
 const { result } = renderHook(() => useFocusContent({ page: 1 }), { wrapper });
 ```
 

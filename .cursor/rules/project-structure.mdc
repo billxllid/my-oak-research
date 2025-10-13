@@ -159,5 +159,5 @@ packages/ui/
 
 - 新功能 → 在 `apps/web/app/(feature)/` 下新建子路由 + layout
 - 新 UI 组件 → 在 `packages/ui` 内创建，并在 `index.ts` 导出
-- 数据逻辑 → worker → Prisma → SWR → UI
+- 数据逻辑 → worker → Prisma → React Query → UI
 - Cursor 必须提示开发者：若页面内出现复杂组件，请先检查 `packages/ui` 是否已有实现
