@@ -37,6 +37,15 @@ alwaysApply: true
 | `@proxy-management.mdc` | 代理资源管理 API 规范          |
 | `@llm-gateway.mdc`      | LLM 服务网关设计规范           |
 
+### Security & Operations
+
+| 规则文件                        | 描述                   |
+| ------------------------------- | ---------------------- |
+| `@security.mdc`                 | 安全开发规范与最佳实践 |
+| `@security-audit.mdc`           | 安全审计规范与检查清单 |
+| `@deployment-devops.mdc`        | 部署与运维规范         |
+| `@performance-optimization.mdc` | 性能优化规范           |
+
 ### AI / LLM
 
 | 规则文件                         | 描述                   |
