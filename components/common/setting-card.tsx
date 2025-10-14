@@ -50,6 +50,9 @@ export interface SettingCardProps {
     icon?: React.ReactNode;
   };
 
+  // 筛选组件
+  filterComponent?: React.ReactNode;
+
   // 自定义内容
   children?: React.ReactNode;
 
@@ -66,6 +69,7 @@ export function SettingCard({
   badges = [],
   actions = [],
   primaryAction,
+  filterComponent,
   children,
   className,
   compact = false,
@@ -104,8 +108,11 @@ export function SettingCard({
         )}
       </CardHeader>
 
-      {(children || actions.length > 0 || primaryAction) && (
+      {(children || actions.length > 0 || primaryAction || filterComponent) && (
         <CardContent className={compact ? "pt-0" : undefined}>
+          {/* 筛选组件 */}
+          {filterComponent && <div className="mb-4">{filterComponent}</div>}
+
           {/* 自定义内容 */}
           {children}
 

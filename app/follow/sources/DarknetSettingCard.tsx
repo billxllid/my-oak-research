@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { PlusIcon, Search } from "lucide-react";
 import { Source, DarknetSourceConfig, Proxy } from "@/lib/generated/prisma";
 import { SettingCard } from "@/components/common";
 import DarknetSources from "./DarknetSources";
@@ -28,6 +29,8 @@ async function fetchSources() {
 }
 
 const DarknetSettingCard = ({ proxies, initialSources }: Props) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Use React Query to fetch sources data
   const {
     data: sources,
@@ -50,11 +53,43 @@ const DarknetSettingCard = ({ proxies, initialSources }: Props) => {
     );
   }
 
-  const filteredSources =
+  const typeFilteredSources =
     sources?.filter(
       (s: Source & { darknet: DarknetSourceConfig & { proxy: Proxy } }) =>
         s.type === "DARKNET" && s.darknet
     ) || [];
+
+  // 应用搜索筛选
+  const filteredSources = typeFilteredSources.filter(
+    (source: Source & { darknet: DarknetSourceConfig & { proxy: Proxy } }) =>
+      source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      source.darknet?.url?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // 筛选组件
+  const filterComponent = (
+    <div className="flex items-center gap-4">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search darknet sources..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <DarknetSourceDialog
+        proxies={proxies}
+        triggerButton={
+          <Button>
+            <PlusIcon className="size-4" />
+            Add Darknet Source
+          </Button>
+        }
+      />
+    </div>
+  );
 
   return (
     <SettingCard
@@ -62,30 +97,17 @@ const DarknetSettingCard = ({ proxies, initialSources }: Props) => {
       description="You can manage information sources from the darknet here."
       count={filteredSources.length}
       countLabel="sources"
+      filterComponent={filterComponent}
     >
-      <div className="space-y-4">
-        <div className="flex justify-end">
-          <DarknetSourceDialog
-            proxies={proxies}
-            triggerButton={
-              <Button>
-                <PlusIcon className="size-4" />
-                Add Darknet Source
-              </Button>
-            }
-          />
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
         </div>
-
-        {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : (
-          <DarknetSources sources={filteredSources} proxies={proxies} />
-        )}
-      </div>
+      ) : (
+        <DarknetSources sources={filteredSources} proxies={proxies} />
+      )}
     </SettingCard>
   );
 };

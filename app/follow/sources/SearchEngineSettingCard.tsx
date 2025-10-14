@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, TrashIcon, PlusIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { PencilIcon, TrashIcon, PlusIcon, Search } from "lucide-react";
 import { Source, Proxy } from "@/lib/generated/prisma";
 import { SearchEngineSourceConfig } from "@/lib/generated/prisma";
 import {
@@ -24,6 +25,16 @@ type SearchEngineSource = Source & { search: SearchEngineSourceConfig } & {
 };
 
 const SearchEngineSettingCard = ({ sources, proxies }: Props) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // 筛选数据
+  const filteredSources = sources.filter(
+    (source) =>
+      source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      source.search?.query?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // 定义表格列配置
   const columns: DataTableColumn<SearchEngineSource>[] = [
     {
@@ -88,32 +99,44 @@ const SearchEngineSettingCard = ({ sources, proxies }: Props) => {
     },
   ];
 
+  // 筛选组件
+  const filterComponent = (
+    <div className="flex items-center gap-4">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search search engines..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <SearchEngineSourceDialog
+        triggerButton={
+          <Button>
+            <PlusIcon className="size-4" />
+            Add Search Engine
+          </Button>
+        }
+        proxies={proxies}
+      />
+    </div>
+  );
+
   return (
     <SettingCard
       title="Manage Search Engines"
       description="You can manage search engines here."
-      count={sources.length}
+      count={filteredSources.length}
       countLabel="search engines"
+      filterComponent={filterComponent}
     >
-      <div className="space-y-4">
-        <div className="flex justify-end">
-          <SearchEngineSourceDialog
-            triggerButton={
-              <Button>
-                <PlusIcon className="size-4" />
-                Add Search Engine
-              </Button>
-            }
-            proxies={proxies}
-          />
-        </div>
-        <DataTable
-          data={sources}
-          columns={columns}
-          actions={actions}
-          emptyMessage="No search engines found. Add your first search engine to get started."
-        />
-      </div>
+      <DataTable
+        data={filteredSources}
+        columns={columns}
+        actions={actions}
+        emptyMessage="No search engines found. Add your first search engine to get started."
+      />
     </SettingCard>
   );
 };
