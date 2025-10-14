@@ -6,7 +6,7 @@ import { SelectItem } from "@/components/ui/select";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { Proxy } from "@/lib/generated/prisma";
 import { Label } from "@/components/ui/label";
-import ErrorMessage from "@/components/ErrorMessage";
+import { ErrorMessage } from "@/components/business";
 
 interface Props {
   control: Control<any>;

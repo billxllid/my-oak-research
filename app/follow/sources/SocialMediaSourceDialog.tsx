@@ -13,9 +13,9 @@ import { Controller, useForm } from "react-hook-form";
 import { Proxy, Source } from "@/lib/generated/prisma";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SettingEditDialog } from "@/components/SettingEditDialog";
+import { SettingEditDialog } from "@/components/layout";
 import { z } from "zod";
-import ErrorMessage from "@/components/ErrorMessage";
+import { ErrorMessage } from "@/components/business";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

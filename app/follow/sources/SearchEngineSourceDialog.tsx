@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchEngineSourceCreateSchema } from "@/app/api/_utils/zod";
 import { z } from "zod";
-import { SettingEditDialog } from "@/components/SettingEditDialog";
+import { SettingEditDialog } from "@/components/layout";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +15,7 @@ import {
   Proxy,
 } from "@/lib/generated/prisma";
 import SelectProxy from "./SelectProxy";
-import ErrorMessage from "@/components/ErrorMessage";
+import { ErrorMessage } from "@/components/business";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

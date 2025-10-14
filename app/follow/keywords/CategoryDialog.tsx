@@ -11,11 +11,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { SettingEditDialog } from "@/components/SettingEditDialog";
+import { SettingEditDialog } from "@/components/layout";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import ErrorMessage from "@/components/ErrorMessage";
+import { ErrorMessage } from "@/components/business";
 
 const EditCategoryDialog = ({
   category,

@@ -1,4 +1,4 @@
-import { SettingEditDialog } from "@/components/SettingEditDialog";
+import { SettingEditDialog } from "@/components/layout";
 import { Proxy } from "@/lib/generated/prisma";
 import { Source } from "@/lib/generated/prisma";
 import { DarknetSourceConfig } from "@/lib/generated/prisma";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import SelectProxy from "./SelectProxy";
-import ErrorMessage from "@/components/ErrorMessage";
+import { ErrorMessage } from "@/components/business";
 import { toast } from "sonner";
 import { DarknetSourceCreateSchema } from "@/app/api/_utils/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

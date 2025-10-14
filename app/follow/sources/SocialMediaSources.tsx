@@ -1,77 +1,95 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import SocialMediaSourceDialog from "./SocialMediaSourceDialog";
+import { PencilIcon, TrashIcon } from "lucide-react";
+import { SocialMediaSourceConfig, Source, Proxy } from "@/lib/generated/prisma";
 import { SocialConfigByPlatform } from "@/app/api/_utils/zod";
-import { SocialMediaSourceConfig, Source } from "@/lib/generated/prisma";
 import { z } from "zod";
-import { Proxy } from "@/lib/generated/prisma";
+import {
+  DataTable,
+  DataTableColumn,
+  DataTableAction,
+} from "@/components/common";
+import SocialMediaSourceDialog from "./SocialMediaSourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
-import { PencilIcon } from "lucide-react";
-import { TrashIcon } from "lucide-react";
 
 interface Props {
   sources: (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
   proxies: Proxy[];
 }
 
+type SocialMediaSource = Source & { social: SocialMediaSourceConfig } & {
+  proxy: Proxy;
+};
+
 const SocialMediaSources = ({ sources, proxies }: Props) => {
+  // 定义表格列配置
+  const columns: DataTableColumn<SocialMediaSource>[] = [
+    {
+      key: "name",
+      label: "Name",
+      render: (source) => source.name,
+    },
+    {
+      key: "description",
+      label: "Description",
+      render: (source) => source.description,
+    },
+    {
+      key: "platform",
+      label: "Type",
+      render: (source) => source.social.platform,
+    },
+    {
+      key: "proxy",
+      label: "Proxy",
+      render: (source) => source.proxy?.name || "None",
+    },
+  ];
+
+  // 定义操作配置
+  const actions: DataTableAction<SocialMediaSource>[] = [
+    {
+      type: "edit",
+      render: (source) => (
+        <SocialMediaSourceDialog
+          proxies={proxies}
+          source={
+            source as Source & {
+              social: z.infer<typeof SocialConfigByPlatform>;
+            } & { proxy: Proxy }
+          }
+          triggerButton={
+            <Button size="sm" variant="outline">
+              <PencilIcon className="size-3" />
+            </Button>
+          }
+        />
+      ),
+    },
+    {
+      type: "delete",
+      render: (source) => (
+        <SourceDeleteAlert
+          source={source}
+          queryKeyType="SOCIAL_MEDIA"
+          triggerButton={
+            <Button size="sm" variant="outline">
+              <TrashIcon className="size-3" />
+            </Button>
+          }
+        />
+      ),
+    },
+  ];
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>ID</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Proxy</TableHead>
-          <TableHead>Action</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {sources.map((source, index) => (
-          <TableRow key={index}>
-            <TableCell>{index + 1}</TableCell>
-            <TableCell>{source.name}</TableCell>
-            <TableCell>{source.description}</TableCell>
-            <TableCell>{source.social.platform}</TableCell>
-            <TableCell>{source.proxy?.name}</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <SocialMediaSourceDialog
-                  proxies={proxies}
-                  source={
-                    source as Source & {
-                      social: z.infer<typeof SocialConfigByPlatform>;
-                    } & { proxy: Proxy }
-                  }
-                  triggerButton={
-                    <Button size="sm" variant="outline">
-                      <PencilIcon className="size-3" />
-                    </Button>
-                  }
-                />
-                <SourceDeleteAlert
-                  source={source}
-                  queryKeyType="SOCIAL_MEDIA"
-                  triggerButton={
-                    <Button size="sm" variant="outline">
-                      <TrashIcon className="size-3" />
-                    </Button>
-                  }
-                />
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <DataTable
+      data={sources}
+      columns={columns}
+      actions={actions}
+      emptyMessage="No social media sources found. Add your first social media source to get started."
+    />
   );
 };
 

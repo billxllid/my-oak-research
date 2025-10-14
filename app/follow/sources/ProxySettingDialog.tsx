@@ -1,6 +1,6 @@
 "use client";
 
-import { SettingEditDialog } from "@/components/SettingEditDialog";
+import { SettingEditDialog } from "@/components/layout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Proxy, ProxyType } from "@/lib/generated/prisma";
@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { ProxyCreateSchema } from "@/app/api/_utils/zod";
-import ErrorMessage from "@/components/ErrorMessage";
+import { ErrorMessage } from "@/components/business";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ControlledSelect } from "@/components/ui/controlled-select";

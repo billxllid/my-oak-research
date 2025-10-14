@@ -15,8 +15,8 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import ErrorMessage from "@/components/ErrorMessage";
-import { SettingEditDialog } from "@/components/SettingEditDialog";
+import { ErrorMessage } from "@/components/business";
+import { SettingEditDialog } from "@/components/layout";
 
 type KeywordWithCategory = Prisma.KeywordGetPayload<{
   include: { category: true };

@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { Category } from "@/lib/generated/prisma";
-import { SettingCard } from "@/components/SettingCard";
+import { SettingCard } from "@/components/common";
 import EditCategoryDialog from "./CategoryDialog";
 import CategoryTable from "./Categories";
 
@@ -22,32 +22,34 @@ const CategorySettingCard = ({ categories }: Props) => {
     <SettingCard
       title="Manage Keyword Categories"
       description="You can manage your keyword categories here."
-      buttonComponent={
-        <EditCategoryDialog
-          triggerButton={
-            <Button>
-              <PlusIcon />
-              Add Category
-            </Button>
-          }
-        />
-      }
-      filterComponent={
-        <Select>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category: Category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      }
+      count={categories.length}
+      countLabel="categories"
     >
-      <CategoryTable categories={categories} />
+      <div className="space-y-4">
+        <div className="flex gap-4 justify-between items-center">
+          <Select>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category: Category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <EditCategoryDialog
+            triggerButton={
+              <Button>
+                <PlusIcon className="size-4" />
+                Add Category
+              </Button>
+            }
+          />
+        </div>
+        <CategoryTable categories={categories} />
+      </div>
     </SettingCard>
   );
 };
