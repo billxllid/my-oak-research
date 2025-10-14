@@ -1,26 +1,16 @@
+"use client";
+
 import React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, TrashIcon } from "lucide-react";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import { PlusIcon } from "lucide-react";
+import { PencilIcon, TrashIcon, PlusIcon } from "lucide-react";
 import { Source, Proxy } from "@/lib/generated/prisma";
 import { SearchEngineSourceConfig } from "@/lib/generated/prisma";
+import {
+  SettingCard,
+  DataTable,
+  DataTableColumn,
+  DataTableAction,
+} from "@/components/common";
 import SearchEngineSourceDialog from "./SearchEngineSourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
 
@@ -29,100 +19,102 @@ interface Props {
   proxies: Proxy[];
 }
 
+type SearchEngineSource = Source & { search: SearchEngineSourceConfig } & {
+  proxy: Proxy;
+};
+
 const SearchEngineSettingCard = ({ sources, proxies }: Props) => {
-  // const searchEngines: SearchEngine[] = [
-  //   {
-  //     id: "1",
-  //     label: "Google",
-  //     desc: "Google is a search engine that indexes the web.",
-  //     url: "https://www.google.com",
-  //   },
-  // ];
+  // 定义表格列配置
+  const columns: DataTableColumn<SearchEngineSource>[] = [
+    {
+      key: "name",
+      label: "Name",
+      render: (source) => source.name,
+    },
+    {
+      key: "description",
+      label: "Description",
+      className: "max-w-xs",
+      render: (source) => (
+        <div className="whitespace-normal">{source.description}</div>
+      ),
+    },
+    {
+      key: "query",
+      label: "Query",
+      className: "max-w-xs",
+      render: (source) => (
+        <span className="text-sm break-all whitespace-normal">
+          {source.search.query}
+        </span>
+      ),
+    },
+    {
+      key: "proxy",
+      label: "Proxy",
+      render: (source) => source.proxy?.name || "None",
+    },
+  ];
+
+  // 定义操作配置
+  const actions: DataTableAction<SearchEngineSource>[] = [
+    {
+      type: "edit",
+      render: (source) => (
+        <SearchEngineSourceDialog
+          triggerButton={
+            <Button size="sm" variant="outline">
+              <PencilIcon className="size-3" />
+            </Button>
+          }
+          proxies={proxies}
+          source={source}
+        />
+      ),
+    },
+    {
+      type: "delete",
+      render: (source) => (
+        <SourceDeleteAlert
+          source={source}
+          queryKeyType="SEARCH_ENGINE"
+          triggerButton={
+            <Button size="sm" variant="outline">
+              <TrashIcon className="size-3" />
+            </Button>
+          }
+        />
+      ),
+    },
+  ];
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Manage Search Engines</CardTitle>
-        <CardDescription>You can manage search engines here.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Search search engines..."
-              className="pl-9 bg-muted border-none"
-              icon={<Search size={16} />}
-            />
-          </div>
+    <SettingCard
+      title="Manage Search Engines"
+      description="You can manage search engines here."
+      count={sources.length}
+      countLabel="search engines"
+    >
+      <div className="space-y-4">
+        <div className="flex justify-end">
           <SearchEngineSourceDialog
             triggerButton={
               <Button>
-                <PlusIcon />
+                <PlusIcon className="size-4" />
                 Add Search Engine
               </Button>
             }
             proxies={proxies}
           />
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Domain</TableHead>
-              <TableHead>Proxy</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sources.map(
-              (
-                source: Source & { search: SearchEngineSourceConfig } & {
-                  proxy: Proxy;
-                },
-                index
-              ) => (
-                <TableRow key={source.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{source.name}</TableCell>
-                  <TableCell className="max-w-xs whitespace-normal">
-                    {source.description}
-                  </TableCell>
-                  <TableCell className="max-w-xs break-all whitespace-normal">
-                    <span className="text-sm">{source.search.query}</span>
-                  </TableCell>
-                  <TableCell>
-                    {source.proxy ? source.proxy?.name : ""}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <SearchEngineSourceDialog
-                        triggerButton={
-                          <Button size="sm" variant="outline">
-                            <PencilIcon className="size-3" />
-                          </Button>
-                        }
-                        proxies={proxies}
-                        source={source}
-                      />
-                      <SourceDeleteAlert
-                        source={source}
-                        queryKeyType="SEARCH_ENGINE"
-                        triggerButton={
-                          <Button size="sm" variant="outline">
-                            <TrashIcon className="size-3" />
-                          </Button>
-                        }
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+        <DataTable
+          data={sources}
+          columns={columns}
+          actions={actions}
+          emptyMessage="No search engines found. Add your first search engine to get started."
+        />
+      </div>
+    </SettingCard>
   );
 };
 

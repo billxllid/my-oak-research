@@ -2,7 +2,7 @@ import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import WebSiteSettingCard from "./WebSiteSettingCard";
 import SocialMediaSettingCard from "./SocialMediaSettingCard";
-import DarknetSettingCardCard from "./DarknetSettingCard";
+import DarknetSettingCard from "./DarknetSettingCard";
 import SearchEngineSettingCard from "./SearchEngineSettingCard";
 import ProxySettingCard from "./ProxySettingCard";
 import prisma from "@/lib/prisma";
@@ -58,7 +58,7 @@ const Sources = async () => {
           <SocialMediaSettingCard sources={socialMedia} proxies={proxies} />
         </TabsContent>
         <TabsContent value="darknet">
-          <DarknetSettingCardCard initialSources={darknet} proxies={proxies} />
+          <DarknetSettingCard initialSources={darknet} proxies={proxies} />
         </TabsContent>
         <TabsContent value="search-engines">
           <SearchEngineSettingCard sources={searchEngines} proxies={proxies} />

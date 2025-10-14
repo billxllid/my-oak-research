@@ -1,18 +1,10 @@
 "use client";
 
 import React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { Source, DarknetSourceConfig, Proxy } from "@/lib/generated/prisma";
+import { SettingCard } from "@/components/common";
 import DarknetSources from "./DarknetSources";
 import DarknetSourceDialog from "./DarknetSourceDialog";
 import { useQuery } from "@tanstack/react-query";
@@ -49,39 +41,35 @@ const DarknetSettingCard = ({ proxies, initialSources }: Props) => {
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage Darknet Sources</CardTitle>
-          <CardDescription>
-            Error loading darknet sources. Please try again.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <SettingCard
+        title="Manage Darknet Sources"
+        description="Error loading darknet sources. Please try again."
+        count={0}
+        countLabel="sources"
+      />
     );
   }
 
+  const filteredSources =
+    sources?.filter(
+      (s: Source & { darknet: DarknetSourceConfig & { proxy: Proxy } }) =>
+        s.type === "DARKNET" && s.darknet
+    ) || [];
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Manage Darknet Sources</CardTitle>
-        <CardDescription>
-          You can manage information sources from the darknet here.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4 mb-4">
-          <div className="relative flex-1">
-            <Input
-              placeholder="Search darknet sources..."
-              className="pl-9 bg-muted border-none"
-              icon={<Search size={16} />}
-            />
-          </div>
+    <SettingCard
+      title="Manage Darknet Sources"
+      description="You can manage information sources from the darknet here."
+      count={filteredSources.length}
+      countLabel="sources"
+    >
+      <div className="space-y-4">
+        <div className="flex justify-end">
           <DarknetSourceDialog
             proxies={proxies}
             triggerButton={
               <Button>
-                <PlusIcon />
+                <PlusIcon className="size-4" />
                 Add Darknet Source
               </Button>
             }
@@ -95,21 +83,10 @@ const DarknetSettingCard = ({ proxies, initialSources }: Props) => {
             <Skeleton className="h-12 w-full" />
           </div>
         ) : (
-          <DarknetSources
-            sources={
-              sources?.filter(
-                (
-                  s: Source & {
-                    darknet: DarknetSourceConfig & { proxy: Proxy };
-                  }
-                ) => s.type === "DARKNET" && s.darknet
-              ) || []
-            }
-            proxies={proxies}
-          />
+          <DarknetSources sources={filteredSources} proxies={proxies} />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </SettingCard>
   );
 };
 
