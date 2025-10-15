@@ -91,8 +91,18 @@ export async function POST(req: Request) {
 
     return json(created, 201);
   } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002")
-      return conflict("Keyword name already exists in this category");
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      // Check which field caused the unique constraint violation
+      if (e.meta?.target?.includes("name")) {
+        return conflict(
+          "Keyword name already exists. Please choose a different name."
+        );
+      }
+      return conflict("A keyword with this name already exists");
+    }
     return serverError(e);
   }
 }

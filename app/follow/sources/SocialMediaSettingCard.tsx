@@ -8,18 +8,61 @@ import { Source, SocialMediaSourceConfig, Proxy } from "@/lib/generated/prisma";
 import { SettingCard } from "@/components/common";
 import SocialMediaSourceDialog from "./SocialMediaSourceDialog";
 import SocialMediaSources from "./SocialMediaSources";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
-  sources: (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
   proxies: Proxy[];
+  initialSources?: (Source & { social: SocialMediaSourceConfig } & {
+    proxy: Proxy;
+  })[];
 }
 
-const SocialMediaSettingCard = ({ sources, proxies }: Props) => {
+// Fetcher function for sources
+async function fetchSources() {
+  const response = await fetch("/api/follow/sources?type=SOCIAL_MEDIA");
+  if (!response.ok) {
+    throw new Error("Failed to fetch sources");
+  }
+  const data = await response.json();
+  // Ensure we always return an array, never undefined
+  return Array.isArray(data?.items) ? data.items : [];
+}
+
+const SocialMediaSettingCard = ({ proxies, initialSources }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 筛选数据
-  const filteredSources = sources.filter(
-    (source) =>
+  // Use React Query to fetch sources data
+  const {
+    data: sources,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["sources", "SOCIAL_MEDIA"],
+    queryFn: fetchSources,
+    initialData: initialSources,
+  });
+
+  if (error) {
+    return (
+      <SettingCard
+        title="Manage Social Media"
+        description="Error loading social media sources. Please try again."
+        count={0}
+        countLabel="social media"
+      />
+    );
+  }
+
+  const typeFilteredSources =
+    sources?.filter(
+      (s: Source & { social: SocialMediaSourceConfig } & { proxy: Proxy }) =>
+        s.type === "SOCIAL_MEDIA" && s.social
+    ) || [];
+
+  // 应用搜索筛选
+  const filteredSources = typeFilteredSources.filter(
+    (source: Source & { social: SocialMediaSourceConfig } & { proxy: Proxy }) =>
       source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.social?.platform?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -57,7 +100,15 @@ const SocialMediaSettingCard = ({ sources, proxies }: Props) => {
       countLabel="social media"
       filterComponent={filterComponent}
     >
-      <SocialMediaSources sources={filteredSources} proxies={proxies} />
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      ) : (
+        <SocialMediaSources sources={filteredSources} proxies={proxies} />
+      )}
     </SettingCard>
   );
 };

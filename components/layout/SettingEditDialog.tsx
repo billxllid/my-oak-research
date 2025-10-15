@@ -19,7 +19,7 @@ interface Props {
   triggerButton: React.ReactNode;
   children: React.ReactNode;
   buttonText: string;
-  props: React.ComponentProps<typeof Dialog>;
+  props?: React.ComponentProps<typeof Dialog>;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
@@ -29,7 +29,7 @@ export const SettingEditDialog = ({
   triggerButton,
   children,
   buttonText,
-  props,
+  props = {},
   onSubmit,
 }: Props) => {
   return (

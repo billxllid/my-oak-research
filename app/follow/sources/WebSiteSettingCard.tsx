@@ -8,18 +8,59 @@ import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
 import { SettingCard } from "@/components/common";
 import WebSiteSourceDialog from "./WebSiteSourceDialog";
 import WebSites from "./WebSiteSources";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
-  sources: (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
   proxies: Proxy[];
+  initialSources?: (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
 }
 
-const WebSiteSettingCard = ({ sources, proxies }: Props) => {
+// Fetcher function for sources
+async function fetchSources() {
+  const response = await fetch("/api/follow/sources?type=WEB");
+  if (!response.ok) {
+    throw new Error("Failed to fetch sources");
+  }
+  const data = await response.json();
+  // Ensure we always return an array, never undefined
+  return Array.isArray(data?.items) ? data.items : [];
+}
+
+const WebSiteSettingCard = ({ proxies, initialSources }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 筛选数据
-  const filteredSources = sources.filter(
-    (source) =>
+  // Use React Query to fetch sources data
+  const {
+    data: sources,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["sources", "WEB"],
+    queryFn: fetchSources,
+    initialData: initialSources,
+  });
+
+  if (error) {
+    return (
+      <SettingCard
+        title="Manage Web Sites"
+        description="Error loading web sites. Please try again."
+        count={0}
+        countLabel="websites"
+      />
+    );
+  }
+
+  const typeFilteredSources =
+    sources?.filter(
+      (s: Source & { web: WebSourceConfig } & { proxy: Proxy }) =>
+        s.type === "WEB" && s.web
+    ) || [];
+
+  // 应用搜索筛选
+  const filteredSources = typeFilteredSources.filter(
+    (source: Source & { web: WebSourceConfig } & { proxy: Proxy }) =>
       source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.web?.url?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -57,7 +98,15 @@ const WebSiteSettingCard = ({ sources, proxies }: Props) => {
       countLabel="websites"
       filterComponent={filterComponent}
     >
-      <WebSites sources={filteredSources} proxies={proxies} />
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      ) : (
+        <WebSites sources={filteredSources} proxies={proxies} />
+      )}
     </SettingCard>
   );
 };

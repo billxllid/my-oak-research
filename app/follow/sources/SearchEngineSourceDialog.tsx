@@ -16,8 +16,7 @@ import {
 } from "@/lib/generated/prisma";
 import SelectProxy from "./SelectProxy";
 import { ErrorMessage } from "@/components/business";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useSourceMutation } from "@/hooks/useSourceMutation";
 
 interface Props {
   triggerButton: React.ReactNode;
@@ -31,12 +30,24 @@ const SearchEngineSourceDialog = ({
   proxies,
 }: Props) => {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
+
+  const mutation = useSourceMutation({
+    sourceId: source?.id,
+    queryKeyType: "SEARCH_ENGINE",
+    onSuccess: () => {
+      setOpen(false);
+      if (!source) {
+        reset();
+      }
+    },
+  });
+
   const {
     handleSubmit,
     register,
     control,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(SearchEngineSourceCreateSchema),
     defaultValues: {
@@ -59,42 +70,11 @@ const SearchEngineSourceDialog = ({
       },
     },
   });
+
   const onSubmit = async (
     data: z.infer<typeof SearchEngineSourceCreateSchema>
   ) => {
-    console.log(data);
-    const endpoint = source
-      ? `/api/follow/sources/${source.id}`
-      : "/api/follow/sources";
-    const method = source ? "PATCH" : "POST";
-    const body = JSON.stringify(data);
-    await fetch(endpoint, { method, body })
-      .then((res) => {
-        if (res.ok) {
-          toast.success(
-            source
-              ? "Search engine updated successfully"
-              : "Search engine added successfully"
-          );
-          setOpen(false);
-          setTimeout(() => {
-            router.refresh();
-          }, 200);
-        } else {
-          toast.error(
-            source
-              ? "Failed to update search engine"
-              : "Failed to add search engine"
-          );
-        }
-      })
-      .catch((err) => {
-        toast.error(
-          source
-            ? "Failed to update search engine"
-            : "Failed to add search engine"
-        );
-      });
+    mutation.mutate(data);
   };
   return (
     <SettingEditDialog
@@ -105,7 +85,15 @@ const SearchEngineSourceDialog = ({
           ? "Edit a search engine"
           : "Add a new search engine to your list."
       }
-      buttonText={source ? "Update" : "Add"}
+      buttonText={
+        mutation.isPending
+          ? source
+            ? "Updating..."
+            : "Adding..."
+          : source
+          ? "Update"
+          : "Add"
+      }
       triggerButton={triggerButton}
       onSubmit={handleSubmit(onSubmit)}
     >

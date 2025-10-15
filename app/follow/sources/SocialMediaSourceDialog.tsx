@@ -16,8 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SettingEditDialog } from "@/components/layout";
 import { z } from "zod";
 import { ErrorMessage } from "@/components/business";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useSourceMutation } from "@/hooks/useSourceMutation";
 
 interface Props {
   triggerButton: React.ReactNode;
@@ -28,8 +27,19 @@ interface Props {
 }
 
 const SocialMediaSourceDialog = ({ triggerButton, proxies, source }: Props) => {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  const mutation = useSourceMutation({
+    sourceId: source?.id,
+    queryKeyType: "SOCIAL_MEDIA",
+    onSuccess: () => {
+      setOpen(false);
+      if (!source) {
+        reset();
+      }
+    },
+  });
+
   const makeDefaultSocial = (): z.infer<typeof SocialConfigByPlatform> => {
     const platform = source?.social?.platform;
     switch (platform) {
@@ -79,6 +89,7 @@ const SocialMediaSourceDialog = ({ triggerButton, proxies, source }: Props) => {
     handleSubmit,
     control,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(SocialMediaSourceCreateSchema),
     defaultValues: {
@@ -91,43 +102,11 @@ const SocialMediaSourceDialog = ({ triggerButton, proxies, source }: Props) => {
       social: makeDefaultSocial(),
     },
   });
+
   const onSubmit = async (
     data: z.infer<typeof SocialMediaSourceCreateSchema>
   ) => {
-    console.log(data);
-    const endpoint = source
-      ? `/api/follow/sources/${source.id}`
-      : "/api/follow/sources";
-    const method = source ? "PATCH" : "POST";
-    const body = JSON.stringify(data);
-    await fetch(endpoint, { method, body })
-      .then((res) => {
-        if (res.ok) {
-          toast.success(
-            source
-              ? "Social media updated successfully"
-              : "Social media added successfully"
-          );
-          setOpen(false);
-          setTimeout(() => {
-            router.refresh();
-          }, 200);
-        } else {
-          toast.error(
-            source
-              ? "Failed to update social media"
-              : "Failed to add social media"
-          );
-        }
-      })
-      .catch((err) => {
-        toast.error(
-          source
-            ? "Failed to update social media"
-            : "Failed to add social media"
-        );
-        console.error(err);
-      });
+    mutation.mutate(data);
   };
   return (
     <SettingEditDialog
@@ -137,7 +116,15 @@ const SocialMediaSourceDialog = ({ triggerButton, proxies, source }: Props) => {
         source ? "Edit a social media" : "Add a new social media to your list."
       }
       triggerButton={triggerButton}
-      buttonText={source ? "Update" : "Add"}
+      buttonText={
+        mutation.isPending
+          ? source
+            ? "Updating..."
+            : "Adding..."
+          : source
+          ? "Update"
+          : "Add"
+      }
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="grid gap-4">

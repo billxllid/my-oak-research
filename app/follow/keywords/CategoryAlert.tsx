@@ -18,7 +18,7 @@ const DeleteCategoryDialog = ({
       description={(item) =>
         `Are you sure you want to delete "${item.name}" category? This action cannot be undone.`
       }
-      queryKeys={[["categories"]]}
+      queryKeys={[["categories"], ["keywords"]]}
       deleteEndpoint={(id) => `/api/follow/categories/${id}`}
       triggerButton={triggerButton}
     />

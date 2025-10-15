@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { WebSourceCreateSchema } from "@/app/api/_utils/zod";
-import { toast } from "sonner";
 import { SettingEditDialog } from "@/components/layout";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -17,6 +15,7 @@ import { WebSourceConfig, Source, Proxy } from "@/lib/generated/prisma";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import SelectProxy from "./SelectProxy";
+import { useSourceMutation } from "@/hooks/useSourceMutation";
 
 interface Props {
   triggerButton: React.ReactNode;
@@ -25,8 +24,19 @@ interface Props {
 }
 
 const WebSiteSourceDialog = ({ triggerButton, source, proxies }: Props) => {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  const mutation = useSourceMutation({
+    sourceId: source?.id,
+    queryKeyType: "WEB",
+    onSuccess: () => {
+      setOpen(false);
+      if (!source) {
+        reset();
+      }
+    },
+  });
+
   const {
     control,
     register,
@@ -34,6 +44,7 @@ const WebSiteSourceDialog = ({ triggerButton, source, proxies }: Props) => {
     watch,
     setValue,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(WebSourceCreateSchema),
     defaultValues: {
@@ -59,36 +70,7 @@ const WebSiteSourceDialog = ({ triggerButton, source, proxies }: Props) => {
   });
 
   const onSubmit = async (data: z.infer<typeof WebSourceCreateSchema>) => {
-    console.log(data);
-    const endpoint = source
-      ? `/api/follow/sources/${source.id}`
-      : "/api/follow/sources";
-    const method = source ? "PATCH" : "POST";
-    const body = JSON.stringify(data);
-    await fetch(endpoint, { method, body })
-      .then((res) => {
-        if (res.ok) {
-          toast.success(
-            source
-              ? "Web site updated successfully"
-              : "Web site added successfully"
-          );
-          setOpen(false);
-          setTimeout(() => {
-            router.refresh();
-          }, 200);
-        } else {
-          toast.error(
-            source ? "Failed to update web site" : "Failed to add web site"
-          );
-        }
-      })
-      .catch((err) => {
-        toast.error(
-          source ? "Failed to update web site" : "Failed to add web site"
-        );
-        console.error(err);
-      });
+    mutation.mutate(data);
   };
 
   return (
@@ -99,7 +81,15 @@ const WebSiteSourceDialog = ({ triggerButton, source, proxies }: Props) => {
         source ? "Edit a web site" : "Add a new web site to your list."
       }
       triggerButton={triggerButton}
-      buttonText={source ? "Update" : "Add"}
+      buttonText={
+        mutation.isPending
+          ? source
+            ? "Updating..."
+            : "Adding..."
+          : source
+          ? "Update"
+          : "Add"
+      }
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="grid gap-4">

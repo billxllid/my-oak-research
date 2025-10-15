@@ -14,22 +14,67 @@ import {
 } from "@/components/common";
 import SearchEngineSourceDialog from "./SearchEngineSourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
-  sources: (Source & { search: SearchEngineSourceConfig } & { proxy: Proxy })[];
   proxies: Proxy[];
+  initialSources?: (Source & { search: SearchEngineSourceConfig } & {
+    proxy: Proxy;
+  })[];
 }
 
 type SearchEngineSource = Source & { search: SearchEngineSourceConfig } & {
   proxy: Proxy;
 };
 
-const SearchEngineSettingCard = ({ sources, proxies }: Props) => {
+// Fetcher function for sources
+async function fetchSources() {
+  const response = await fetch("/api/follow/sources?type=SEARCH_ENGINE");
+  if (!response.ok) {
+    throw new Error("Failed to fetch sources");
+  }
+  const data = await response.json();
+  // Ensure we always return an array, never undefined
+  return Array.isArray(data?.items) ? data.items : [];
+}
+
+const SearchEngineSettingCard = ({ proxies, initialSources }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 筛选数据
-  const filteredSources = sources.filter(
-    (source) =>
+  // Use React Query to fetch sources data
+  const {
+    data: sources,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["sources", "SEARCH_ENGINE"],
+    queryFn: fetchSources,
+    initialData: initialSources,
+  });
+
+  if (error) {
+    return (
+      <SettingCard
+        title="Manage Search Engines"
+        description="Error loading search engines. Please try again."
+        count={0}
+        countLabel="search engines"
+      />
+    );
+  }
+
+  const typeFilteredSources =
+    sources?.filter(
+      (s: Source & { search: SearchEngineSourceConfig } & { proxy: Proxy }) =>
+        s.type === "SEARCH_ENGINE" && s.search
+    ) || [];
+
+  // 应用搜索筛选
+  const filteredSources = typeFilteredSources.filter(
+    (
+      source: Source & { search: SearchEngineSourceConfig } & { proxy: Proxy }
+    ) =>
       source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.search?.query?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -131,12 +176,20 @@ const SearchEngineSettingCard = ({ sources, proxies }: Props) => {
       countLabel="search engines"
       filterComponent={filterComponent}
     >
-      <DataTable
-        data={filteredSources}
-        columns={columns}
-        actions={actions}
-        emptyMessage="No search engines found. Add your first search engine to get started."
-      />
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      ) : (
+        <DataTable
+          data={filteredSources}
+          columns={columns}
+          actions={actions}
+          emptyMessage="No search engines found. Add your first search engine to get started."
+        />
+      )}
     </SettingCard>
   );
 };

@@ -25,7 +25,8 @@ async function fetchSources() {
     throw new Error("Failed to fetch sources");
   }
   const data = await response.json();
-  return data.items;
+  // Ensure we always return an array, never undefined
+  return Array.isArray(data?.items) ? data.items : [];
 }
 
 const DarknetSettingCard = ({ proxies, initialSources }: Props) => {

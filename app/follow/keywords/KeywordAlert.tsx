@@ -22,7 +22,7 @@ const DeleteKeywordDialog = ({
       description={(item) =>
         `Are you sure you want to delete "${item.name}" keyword? This action cannot be undone.`
       }
-      queryKeys={[["keywords"]]}
+      queryKeys={[["keywords"], ["categories"]]}
       deleteEndpoint={(id) => `/api/follow/keywords/${id}`}
       triggerButton={triggerButton}
     />

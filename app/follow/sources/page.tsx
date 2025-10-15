@@ -1,46 +1,32 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import WebSiteSettingCard from "./WebSiteSettingCard";
 import SocialMediaSettingCard from "./SocialMediaSettingCard";
 import DarknetSettingCard from "./DarknetSettingCard";
 import SearchEngineSettingCard from "./SearchEngineSettingCard";
 import ProxySettingCard from "./ProxySettingCard";
-import prisma from "@/lib/prisma";
-import {
-  Source,
-  WebSourceConfig,
-  SocialMediaSourceConfig,
-  Proxy,
-} from "@/lib/generated/prisma";
-import {
-  DarknetSourceConfig,
-  SearchEngineSourceConfig,
-} from "@/lib/generated/prisma";
+import { Proxy } from "@/lib/generated/prisma";
+import { useQuery } from "@tanstack/react-query";
 
-const Sources = async () => {
-  const sources = await prisma.source.findMany({
-    include: {
-      web: true,
-      social: true,
-      darknet: { include: { proxy: true } },
-      search: true,
-      proxy: true,
-      credential: true,
-    },
+// Fetcher function for proxies
+async function fetchProxies() {
+  const response = await fetch("/api/follow/proxy");
+  if (!response.ok) {
+    throw new Error("Failed to fetch proxies");
+  }
+  const data = await response.json();
+  // Ensure we always return an array, never undefined
+  return Array.isArray(data?.items) ? data.items : [];
+}
+
+const Sources = () => {
+  const { data: proxies = [] } = useQuery({
+    queryKey: ["proxies"],
+    queryFn: fetchProxies,
   });
-  const webSites = sources.filter(
-    (source) => source.type === "WEB"
-  ) as (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
-  const socialMedia = sources.filter(
-    (source) => source.type === "SOCIAL_MEDIA"
-  ) as (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
-  const darknet = sources.filter(
-    (source) => source.type === "DARKNET"
-  ) as (Source & { darknet: DarknetSourceConfig & { proxy: Proxy } })[];
-  const searchEngines = sources.filter(
-    (source) => source.type === "SEARCH_ENGINE"
-  ) as (Source & { search: SearchEngineSourceConfig } & { proxy: Proxy })[];
-  const proxies = await prisma.proxy.findMany();
+
   return (
     <div>
       <Tabs defaultValue="web-sites" className="space-y-2">
@@ -52,16 +38,16 @@ const Sources = async () => {
           <TabsTrigger value="proxy">Proxy</TabsTrigger>
         </TabsList>
         <TabsContent value="web-sites">
-          <WebSiteSettingCard sources={webSites} proxies={proxies} />
+          <WebSiteSettingCard proxies={proxies} />
         </TabsContent>
         <TabsContent value="social-media">
-          <SocialMediaSettingCard sources={socialMedia} proxies={proxies} />
+          <SocialMediaSettingCard proxies={proxies} />
         </TabsContent>
         <TabsContent value="darknet">
-          <DarknetSettingCard initialSources={darknet} proxies={proxies} />
+          <DarknetSettingCard proxies={proxies} />
         </TabsContent>
         <TabsContent value="search-engines">
-          <SearchEngineSettingCard sources={searchEngines} proxies={proxies} />
+          <SearchEngineSettingCard proxies={proxies} />
         </TabsContent>
         <TabsContent value="proxy">
           <ProxySettingCard proxies={proxies} />
