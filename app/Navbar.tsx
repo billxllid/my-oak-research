@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarHeader,
@@ -159,6 +160,20 @@ const userMenuItems = [
 ];
 
 const Navbar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+  const pathname = usePathname();
+  const isActive = React.useCallback(
+    (url: string) => pathname === url || pathname.startsWith(url + "/"),
+    [pathname]
+  );
+
+  const firstMatchIndex = React.useMemo(() => {
+    return menuItems.findIndex(
+      (g) => isActive(g.url) || (g.items ?? []).some((it) => isActive(it.url))
+    );
+  }, [isActive]);
+
+  const [localOpen, setLocalOpen] = React.useState<Record<number, boolean>>({});
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -174,12 +189,24 @@ const Navbar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) =>
+              {menuItems.map((item, idx) =>
                 item.items ? (
-                  <Collapsible key={item.title} className="group/collapsible">
+                  <Collapsible
+                    key={item.title}
+                    className="group/collapsible"
+                    open={idx === firstMatchIndex || localOpen[idx] === true}
+                    onOpenChange={(v) =>
+                      setLocalOpen((o) => ({ ...o, [idx]: v }))
+                    }
+                  >
                     <SidebarMenuItem>
                       <CollapsibleTrigger asChild>
-                        <SidebarMenuButton>
+                        <SidebarMenuButton
+                          isActive={
+                            isActive(item.url) ||
+                            (item.items ?? []).some((it) => isActive(it.url))
+                          }
+                        >
                           <item.icon />
                           <span>{item.title}</span>
                           <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
@@ -187,12 +214,15 @@ const Navbar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub>
-                          {item.items.map((item) => (
-                            <SidebarMenuSubItem key={item.title}>
-                              <SidebarMenuSubButton asChild>
-                                <Link href={item.url}>
-                                  <item.icon />
-                                  <span>{item.title}</span>
+                          {item.items.map((sub) => (
+                            <SidebarMenuSubItem key={sub.title}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={isActive(sub.url)}
+                              >
+                                <Link href={sub.url}>
+                                  <sub.icon />
+                                  <span>{sub.title}</span>
                                 </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
@@ -203,7 +233,7 @@ const Navbar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
                   </Collapsible>
                 ) : (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuSubButton asChild>
+                    <SidebarMenuSubButton asChild isActive={isActive(item.url)}>
                       <Link href={item.url}>
                         <item.icon />
                         <span>{item.title}</span>
