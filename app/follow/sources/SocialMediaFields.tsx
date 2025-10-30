@@ -61,7 +61,7 @@ export const SocialMediaFields = ({
               placeholder="X User"
               {...register("social.config.user")}
             />
-            <ErrorMessage>{(errors.social?.config as any)?.user?.message}</ErrorMessage>
+            <ErrorMessage>{errors.social?.config?.X?.user?.message}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="social.config.listId">List ID</Label>
@@ -70,7 +70,7 @@ export const SocialMediaFields = ({
               placeholder="X List ID"
               {...register("social.config.listId")}
             />
-            <ErrorMessage>{(errors.social?.config as any)?.listId?.message}</ErrorMessage>
+            <ErrorMessage>{errors.social?.config?.X?.listId?.message}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="social.config.query">Query</Label>
@@ -79,7 +79,7 @@ export const SocialMediaFields = ({
               placeholder="X Query"
               {...register("social.config.query")}
             />
-            <ErrorMessage>{(errors.social?.config as any)?.query?.message}</ErrorMessage>
+            <ErrorMessage>{errors.social?.config?.X?.query?.message}</ErrorMessage>
           </div>
         </>
       )}
@@ -93,7 +93,7 @@ export const SocialMediaFields = ({
               placeholder="@channel or channel_id"
               {...register("social.config.channel")}
             />
-            <ErrorMessage>{(errors.social?.config as any)?.channel?.message}</ErrorMessage>
+            <ErrorMessage>{errors.social?.config?.TELEGRAM?.channel?.message}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="social.config.mode">Mode</Label>
@@ -102,7 +102,7 @@ export const SocialMediaFields = ({
               placeholder="Mode"
               {...register("social.config.mode")}
             />
-            <ErrorMessage>{(errors.social?.config as any)?.mode?.message}</ErrorMessage>
+            <ErrorMessage>{errors.social?.config?.TELEGRAM?.mode?.message}</ErrorMessage>
           </div>
         </>
       )}
@@ -116,7 +116,7 @@ export const SocialMediaFields = ({
               placeholder="subreddit name"
               {...register("social.config.subreddit")}
             />
-            <ErrorMessage>{(errors.social?.config as any)?.subreddit?.message}</ErrorMessage>
+            <ErrorMessage>{errors.social?.config?.REDDIT?.subreddit?.message}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="social.config.sort">Sort</Label>
@@ -125,7 +125,7 @@ export const SocialMediaFields = ({
               placeholder="Sort"
               {...register("social.config.sort")}
             />
-            <ErrorMessage>{(errors.social?.config as any)?.sort?.message}</ErrorMessage>
+            <ErrorMessage>{errors.social?.config?.REDDIT?.sort?.message}</ErrorMessage>
           </div>
         </>
       )}

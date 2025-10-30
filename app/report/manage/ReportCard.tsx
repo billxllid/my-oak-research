@@ -7,7 +7,7 @@ interface ReportCardProps {
   description: string;
 }
 
-const ReportCard = ({ id, name, description }: ReportCardProps) => {
+const ReportCard = ({ name, description }: ReportCardProps) => {
   return (
     <Card>
       <CardContent>

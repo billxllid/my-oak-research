@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   SourceCreateSchema,
   SourceUpdateSchema,
@@ -18,9 +17,8 @@ import { Input } from "@/components/ui/input";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { SelectItem } from "@/components/ui/select";
 import { ErrorMessage } from "@/components/business";
-import { Source, Proxy, SourceType } from "@/lib/generated/prisma";
+import { Source, SourceType } from "@/lib/generated/prisma";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import SelectProxy from "./SelectProxy";
 import { useSourceMutation } from "@/hooks/useSourceMutation";
 import { SocialMediaFields } from "./SocialMediaFields";
@@ -28,7 +26,6 @@ import { DarknetFields } from "./DarknetFields";
 import { SearchEngineFields } from "./SearchEngineFields";
 import { WebFields } from "./WebFields";
 import { CrawlerEngineEnum } from "@/app/api/_utils/zod";
-import { SearchEngineKindEnum } from "@/app/api/_utils/zod";
 
 // Helper to get schema based on type
 const getValidationSchema = (type: SourceType, isUpdate: boolean) => {

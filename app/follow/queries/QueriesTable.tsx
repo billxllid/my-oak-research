@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
-import { Query, Keyword, Source, QueryFrequency } from "@/lib/generated/prisma";
+import { Query, Keyword, Source } from "@/lib/generated/prisma";
 import {
   DataTable,
   DataTableColumn,

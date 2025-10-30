@@ -26,7 +26,7 @@ export const DarknetFields = ({
   proxies,
   watch,
 }: DarknetFieldsProps) => {
-  const crawlerEngine = watch("darknet.crawlerEngine") as CrawlerEngineEnum | undefined;
+  const crawlerEngine = watch("darknet.crawlerEngine") as z.infer<typeof CrawlerEngineEnum> | undefined;
   return (
     <>
       <div className="grid gap-3">

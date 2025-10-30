@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { Control, Controller } from "react-hook-form";
 import { SelectItem } from "@/components/ui/select";
@@ -9,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/business";
 
 interface Props {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: Control<any>;
   proxies: Proxy[];
   error?: string;

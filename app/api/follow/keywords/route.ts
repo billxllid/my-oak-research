@@ -96,7 +96,7 @@ export async function POST(req: Request) {
       e.code === "P2002"
     ) {
       // Check which field caused the unique constraint violation
-      if (e.meta?.target?.includes("name")) {
+      if ((e.meta?.target as string[])?.includes("name")) {
         return conflict(
           "Keyword name already exists. Please choose a different name."
         );

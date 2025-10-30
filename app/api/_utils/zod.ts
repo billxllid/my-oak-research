@@ -131,7 +131,8 @@ function parseJson(val: unknown) {
     try {
       const parse = JSON.parse(val);
       return parse;
-    } catch (error) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_unused) {
       return val;
     }
   }
