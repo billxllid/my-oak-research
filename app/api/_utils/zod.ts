@@ -309,6 +309,7 @@ export const QueryFrequencyEnum = z.enum([
   "DAILY",
   "WEEKLY",
   "MONTHLY",
+  "CRONTAB",
 ]);
 
 
@@ -320,11 +321,44 @@ export const QueryCreateSchema = z.object({
     .optional()
     .nullable(),
   frequency: QueryFrequencyEnum.optional().default("MANUAL"),
+  cronSchedule: z.string().optional().nullable(),
   enabled: z.boolean().optional().default(true),
   keywordIds: z.array(z.string().cuid()).optional().default([]),
   sourceIds: z.array(z.string().cuid()).optional().default([]),
   rules: z.preprocess((val) => parseJson(val), z.any().optional().nullable()),
+}).superRefine((data, ctx) => {
+  if (data.frequency === "CRONTAB" && !data.cronSchedule) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["cronSchedule"],
+      message: "Cron schedule is required when frequency is CRONTAB",
+    });
+  }
+  if (data.frequency !== "CRONTAB" && data.cronSchedule) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["cronSchedule"],
+      message: "Cron schedule should not be set unless frequency is CRONTAB",
+    });
+  }
 });
 
-export const QueryUpdateSchema = QueryCreateSchema.partial();
+export const QueryUpdateSchema = QueryCreateSchema.partial().superRefine((data, ctx) => {
+  // Conditional validation for updates: if frequency is set to CRONTAB, cronSchedule must be present
+  if (data.frequency === "CRONTAB" && !data.cronSchedule) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["cronSchedule"],
+      message: "Cron schedule is required when frequency is CRONTAB",
+    });
+  }
+  // If frequency is explicitly set to something other than CRONTAB, cronSchedule should be null/undefined
+  if (data.frequency && data.frequency !== "CRONTAB" && data.cronSchedule) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["cronSchedule"],
+      message: "Cron schedule should not be set unless frequency is CRONTAB",
+    });
+  }
+});
 

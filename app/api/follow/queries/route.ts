@@ -33,7 +33,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const data = await req.json();
-  const { name, description, frequency, enabled, keywordIds, sourceIds, rules } = data;
+  const { name, description, frequency, cronSchedule, enabled, keywordIds, sourceIds, rules } = data;
 
   // Validate keywordIds
   if (keywordIds && keywordIds.length > 0) {
@@ -66,6 +66,7 @@ export async function POST(req: Request) {
       name,
       description,
       frequency,
+      cronSchedule: frequency === "CRONTAB" ? cronSchedule : null,
       enabled,
       rules,
       keywords: {

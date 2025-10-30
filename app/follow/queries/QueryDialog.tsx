@@ -54,6 +54,7 @@ const QueryDialog = ({
       name: query?.name || "",
       description: query?.description || "",
       frequency: query?.frequency || "MANUAL",
+      cronSchedule: query?.cronSchedule || "",
       enabled: query?.enabled ?? true,
       // Make sure query.keywords and query.sources are always arrays before mapping
       keywordIds: query?.keywords?.map((k) => k.id) || [],
@@ -74,6 +75,7 @@ const QueryDialog = ({
         name: query?.name || "",
         description: query?.description || "",
         frequency: query?.frequency || "MANUAL",
+        cronSchedule: query?.cronSchedule || "",
         enabled: query?.enabled ?? true,
         keywordIds: query?.keywords?.map((k) => k.id) || [],
         sourceIds: query?.sources?.map((s) => s.id) || [],
@@ -85,6 +87,7 @@ const QueryDialog = ({
         name: "",
         description: "",
         frequency: "MANUAL",
+        cronSchedule: "",
         enabled: true,
         keywordIds: [],
         sourceIds: [],
@@ -171,6 +174,18 @@ const QueryDialog = ({
           />
           <ErrorMessage>{errors.frequency?.message}</ErrorMessage>
         </div>
+
+        {watch("frequency") === "CRONTAB" && (
+          <div className="grid gap-3">
+            <Label htmlFor="cronSchedule">Cron Schedule</Label>
+            <Input
+              id="cronSchedule"
+              placeholder="e.g., 0 0 * * * (daily at midnight)"
+              {...register("cronSchedule")}
+            />
+            <ErrorMessage>{errors.cronSchedule?.message}</ErrorMessage>
+          </div>
+        )}
 
         <div className="flex items-center justify-between">
           <Label htmlFor="enabled">Enabled</Label>

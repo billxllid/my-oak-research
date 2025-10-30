@@ -144,7 +144,7 @@ model Source {
   darknet DarknetSourceConfig?
   search  SearchEngineSourceConfig?
   social  SocialMediaSourceConfig?
-  queries   Query[]
+  queries Query[]
 
   @@unique([name])
   @@index([type])
@@ -240,6 +240,7 @@ enum QueryFrequency {
   DAILY
   WEEKLY
   MONTHLY
+  CRONTAB // New type for custom cron schedules
 }
 
 model Query {
@@ -247,8 +248,9 @@ model Query {
   name        String  @unique
   description String?
 
-  enabled   Boolean        @default(true)
-  frequency QueryFrequency @default(MANUAL)
+  enabled      Boolean        @default(true)
+  frequency    QueryFrequency @default(MANUAL)
+  cronSchedule String? // Field to store crontab string
 
   keywords Keyword[]
   sources  Source[]
