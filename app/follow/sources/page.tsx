@@ -1,31 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import WebSiteSettingCard from "./WebSiteSettingCard";
 import SocialMediaSettingCard from "./SocialMediaSettingCard";
 import DarknetSettingCard from "./DarknetSettingCard";
 import SearchEngineSettingCard from "./SearchEngineSettingCard";
 import ProxySettingCard from "./ProxySettingCard";
-import { Proxy } from "@/lib/generated/prisma";
-import { useQuery } from "@tanstack/react-query";
-
-// Fetcher function for proxies
-async function fetchProxies() {
-  const response = await fetch("/api/follow/proxy");
-  if (!response.ok) {
-    throw new Error("Failed to fetch proxies");
-  }
-  const data = await response.json();
-  // Ensure we always return an array, never undefined
-  return Array.isArray(data?.items) ? data.items : [];
-}
+import { useFollow } from "@/hooks/useFollow";
 
 const Sources = () => {
-  const { data: proxies = [] } = useQuery({
-    queryKey: ["proxies"],
-    queryFn: fetchProxies,
-  });
+  const { proxies } = useFollow();
 
   return (
     <div>

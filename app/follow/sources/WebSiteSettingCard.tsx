@@ -6,40 +6,17 @@ import { Input } from "@/components/ui/input";
 import { PlusIcon, Search } from "lucide-react";
 import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
 import { SettingCard } from "@/components/common";
-import WebSiteSourceDialog from "./WebSiteSourceDialog";
+import SourceDialog from "./SourceDialog";
 import WebSites from "./WebSiteSources";
-import { useQuery } from "@tanstack/react-query";
+import { useFollow } from "@/hooks/useFollow";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface Props {
-  proxies: Proxy[];
-  initialSources?: (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
-}
-
-// Fetcher function for sources
-async function fetchSources() {
-  const response = await fetch("/api/follow/sources?type=WEB");
-  if (!response.ok) {
-    throw new Error("Failed to fetch sources");
-  }
-  const data = await response.json();
-  // Ensure we always return an array, never undefined
-  return Array.isArray(data?.items) ? data.items : [];
-}
-
-const WebSiteSettingCard = ({ proxies, initialSources }: Props) => {
+const WebSiteSettingCard = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setDialogOpen] = useState(false);
 
-  // Use React Query to fetch sources data
-  const {
-    data: sources,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["sources", "WEB"],
-    queryFn: fetchSources,
-    initialData: initialSources,
-  });
+  const { sources, proxies, sourcesQuery } = useFollow();
+  const { isLoading, error } = sourcesQuery;
 
   if (error) {
     return (
@@ -52,21 +29,19 @@ const WebSiteSettingCard = ({ proxies, initialSources }: Props) => {
     );
   }
 
-  const typeFilteredSources =
+  const webSources =
     sources?.filter(
       (s: Source & { web: WebSourceConfig } & { proxy: Proxy }) =>
         s.type === "WEB" && s.web
     ) || [];
 
-  // 应用搜索筛选
-  const filteredSources = typeFilteredSources.filter(
+  const filteredSources = webSources.filter(
     (source: Source & { web: WebSourceConfig } & { proxy: Proxy }) =>
       source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.web?.url?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 筛选组件
   const filterComponent = (
     <div className="flex items-center gap-4">
       <div className="relative flex-1">
@@ -78,10 +53,13 @@ const WebSiteSettingCard = ({ proxies, initialSources }: Props) => {
           className="pl-9"
         />
       </div>
-      <WebSiteSourceDialog
+      <SourceDialog
+        sourceType="WEB"
         proxies={proxies}
+        open={isDialogOpen}
+        onOpenChange={setDialogOpen}
         triggerButton={
-          <Button>
+          <Button onClick={() => setDialogOpen(true)}>
             <PlusIcon className="size-4" />
             Add Web Site
           </Button>

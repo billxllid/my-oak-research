@@ -42,6 +42,7 @@ model Keyword {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  queries   Query[]
 
   @@unique([name])
 }
@@ -143,6 +144,7 @@ model Source {
   darknet DarknetSourceConfig?
   search  SearchEngineSourceConfig?
   social  SocialMediaSourceConfig?
+  queries   Query[]
 
   @@unique([name])
   @@index([type])
@@ -227,6 +229,31 @@ model SocialMediaSourceConfig {
   // 某些平台也允许代理覆盖（比如地区限制）
   proxyId String?
   proxy   Proxy?  @relation(fields: [proxyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum QueryFrequency {
+  MANUAL
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model Query {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  enabled   Boolean        @default(true)
+  frequency QueryFrequency @default(MANUAL)
+
+  keywords Keyword[]
+  sources  Source[]
+
+  rules Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

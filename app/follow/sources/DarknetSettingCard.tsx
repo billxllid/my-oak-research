@@ -4,44 +4,18 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusIcon, Search } from "lucide-react";
-import { Source, DarknetSourceConfig, Proxy } from "@/lib/generated/prisma";
 import { SettingCard } from "@/components/common";
 import DarknetSources from "./DarknetSources";
-import DarknetSourceDialog from "./DarknetSourceDialog";
-import { useQuery } from "@tanstack/react-query";
+import SourceDialog from "./SourceDialog";
+import { useFollow } from "@/hooks/useFollow";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface Props {
-  proxies: Proxy[];
-  initialSources?: (Source & {
-    darknet: DarknetSourceConfig & { proxy: Proxy };
-  })[];
-}
-
-// Fetcher function for sources
-async function fetchSources() {
-  const response = await fetch("/api/follow/sources?type=DARKNET");
-  if (!response.ok) {
-    throw new Error("Failed to fetch sources");
-  }
-  const data = await response.json();
-  // Ensure we always return an array, never undefined
-  return Array.isArray(data?.items) ? data.items : [];
-}
-
-const DarknetSettingCard = ({ proxies, initialSources }: Props) => {
+const DarknetSettingCard = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setDialogOpen] = useState(false);
 
-  // Use React Query to fetch sources data
-  const {
-    data: sources,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["sources", "DARKNET"],
-    queryFn: fetchSources,
-    initialData: initialSources,
-  });
+  const { sources, proxies, sourcesQuery } = useFollow();
+  const { isLoading, error } = sourcesQuery;
 
   if (error) {
     return (
@@ -54,21 +28,18 @@ const DarknetSettingCard = ({ proxies, initialSources }: Props) => {
     );
   }
 
-  const typeFilteredSources =
+  const darknetSources =
     sources?.filter(
-      (s: Source & { darknet: DarknetSourceConfig & { proxy: Proxy } }) =>
-        s.type === "DARKNET" && s.darknet
+      (s) => s.type === "DARKNET" && s.darknet
     ) || [];
 
-  // 应用搜索筛选
-  const filteredSources = typeFilteredSources.filter(
-    (source: Source & { darknet: DarknetSourceConfig & { proxy: Proxy } }) =>
+  const filteredSources = darknetSources.filter(
+    (source) =>
       source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.darknet?.url?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 筛选组件
   const filterComponent = (
     <div className="flex items-center gap-4">
       <div className="relative flex-1">
@@ -80,10 +51,13 @@ const DarknetSettingCard = ({ proxies, initialSources }: Props) => {
           className="pl-9"
         />
       </div>
-      <DarknetSourceDialog
+      <SourceDialog
+        sourceType="DARKNET"
         proxies={proxies}
+        open={isDialogOpen}
+        onOpenChange={setDialogOpen}
         triggerButton={
-          <Button>
+          <Button onClick={() => setDialogOpen(true)}>
             <PlusIcon className="size-4" />
             Add Darknet Source
           </Button>

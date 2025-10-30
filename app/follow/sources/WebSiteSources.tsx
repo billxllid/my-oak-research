@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
@@ -8,7 +9,7 @@ import {
   DataTableColumn,
   DataTableAction,
 } from "@/components/common";
-import EditWebSiteDialog from "./WebSiteSourceDialog";
+import SourceDialog from "./SourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
 
 interface Props {
@@ -19,7 +20,16 @@ interface Props {
 type WebSiteSource = Source & { web: WebSourceConfig } & { proxy: Proxy };
 
 const WebSites = ({ sources, proxies }: Props) => {
-  // 定义表格列配置
+  const [editingSource, setEditingSource] = useState<WebSiteSource | undefined>();
+
+  const handleEdit = (source: WebSiteSource) => {
+    setEditingSource(source);
+  };
+
+  const handleCloseDialog = () => {
+    setEditingSource(undefined);
+  };
+
   const columns: DataTableColumn<WebSiteSource>[] = [
     {
       key: "name",
@@ -44,20 +54,13 @@ const WebSites = ({ sources, proxies }: Props) => {
     },
   ];
 
-  // 定义操作配置
   const actions: DataTableAction<WebSiteSource>[] = [
     {
       type: "edit",
       render: (source) => (
-        <EditWebSiteDialog
-          triggerButton={
-            <Button size="sm" variant="outline">
-              <PencilIcon className="size-3" />
-            </Button>
-          }
-          source={source}
-          proxies={proxies}
-        />
+        <Button size="sm" variant="outline" onClick={() => handleEdit(source)}>
+          <PencilIcon className="size-3" />
+        </Button>
       ),
     },
     {
@@ -77,12 +80,21 @@ const WebSites = ({ sources, proxies }: Props) => {
   ];
 
   return (
-    <DataTable
-      data={sources}
-      columns={columns}
-      actions={actions}
-      emptyMessage="No website sources found. Add your first website source to get started."
-    />
+    <>
+      <SourceDialog
+        sourceType="WEB"
+        source={editingSource}
+        proxies={proxies}
+        open={!!editingSource}
+        onOpenChange={(open) => !open && handleCloseDialog()}
+      />
+      <DataTable
+        data={sources}
+        columns={columns}
+        actions={actions}
+        emptyMessage="No website sources found. Add your first website source to get started."
+      />
+    </>
   );
 };
 

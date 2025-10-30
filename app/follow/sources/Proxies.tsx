@@ -1,67 +1,99 @@
 "use client";
 
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Proxy } from "@/lib/generated/prisma";
-import { Table } from "@/components/ui/table";
-import React from "react";
-import EditProxySettingDialog from "./ProxySettingDialog";
-import ProxyDeleteAlert from "./ProxyDeleteAlert";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
+import { Proxy } from "@/lib/generated/prisma";
+import {
+  DataTable,
+  DataTableColumn,
+  DataTableAction,
+} from "@/components/common";
+import EditProxySettingDialog from "./ProxySettingDialog";
+import ProxyDeleteAlert from "./ProxyDeleteAlert";
 
 interface Props {
   proxies: Proxy[];
 }
 
 const Proxies = ({ proxies }: Props) => {
+  const [editingProxy, setEditingProxy] = useState<Proxy | undefined>();
+
+  const handleEdit = (proxy: Proxy) => {
+    setEditingProxy(proxy);
+  };
+
+  const handleCloseDialog = () => {
+    setEditingProxy(undefined);
+  };
+
+  const columns: DataTableColumn<Proxy>[] = [
+    {
+      key: "id",
+      label: "ID",
+      render: (proxy, index) => index + 1,
+    },
+    {
+      key: "name",
+      label: "Name",
+      render: (proxy) => proxy.name,
+    },
+    {
+      key: "type",
+      label: "Type",
+      render: (proxy) => proxy.type,
+    },
+    {
+      key: "url",
+      label: "URL",
+      render: (proxy) => proxy.url,
+    },
+  ];
+
+  const actions: DataTableAction<Proxy>[] = [
+    {
+      type: "edit",
+      render: (proxy) => (
+        <EditProxySettingDialog
+          triggerButton={
+            <Button size="sm" variant="outline" onClick={() => handleEdit(proxy)}>
+              <PencilIcon className="size-3" />
+            </Button>
+          }
+          currentProxy={proxy}
+        />
+      ),
+    },
+    {
+      type: "delete",
+      render: (proxy) => (
+        <ProxyDeleteAlert
+          proxy={proxy}
+          triggerButton={
+            <Button size="sm" variant="outline">
+              <TrashIcon className="size-3" />
+            </Button>
+          }
+        />
+      ),
+    },
+  ];
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>ID</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>URL</TableHead>
-          <TableHead>Action</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {proxies.map((proxy, index: number) => (
-          <TableRow key={proxy.id}>
-            <TableCell>{index + 1}</TableCell>
-            <TableCell>{proxy.name}</TableCell>
-            <TableCell>{proxy.type}</TableCell>
-            <TableCell>{proxy.url}</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <EditProxySettingDialog
-                  triggerButton={
-                    <Button size="sm" variant="outline">
-                      <PencilIcon className="size-3" />
-                    </Button>
-                  }
-                  currentProxy={proxy}
-                />
-                <ProxyDeleteAlert
-                  proxy={proxy}
-                  triggerButton={
-                    <Button size="sm" variant="outline">
-                      <TrashIcon className="size-3" />
-                    </Button>
-                  }
-                />
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <>
+      <EditProxySettingDialog
+        currentProxy={editingProxy}
+        open={!!editingProxy}
+        onOpenChange={(open) => !open && handleCloseDialog()}
+        triggerButton={<Button className="hidden" />} // Hidden button for trigger
+      />
+      <DataTable
+        data={proxies}
+        columns={columns}
+        actions={actions}
+        emptyMessage="No proxies found. Add your first proxy to get started."
+      />
+    </>
   );
 };
 

@@ -1,15 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { SourceType } from "@/lib/generated/prisma";
 
-/**
- * 通用的 Source Mutation Hook，用于创建和更新 source
- * @param options.sourceId - 如果提供，则为更新操作；否则为创建操作
- * @param options.queryKeyType - source 类型，用于 invalidate 特定的查询（如 "WEB", "DARKNET", "SOCIAL_MEDIA", "SEARCH_ENGINE"）
- * @param options.onSuccess - 成功后的回调函数
- */
+// Helper to get the correct API endpoint based on source type
+const getApiEndpoint = (type: SourceType, id?: string) => {
+  if (id) {
+    // For updates, the endpoint is /api/follow/sources/{id}
+    return `/api/follow/sources/${id}`;
+  } else {
+    // For creations, the endpoint is /api/follow/sources
+    // The source type is passed in the body
+    return `/api/follow/sources`;
+  }
+};
+
 interface UseSourceMutationOptions {
   sourceId?: string;
-  queryKeyType?: string;
+  sourceType: SourceType; // Make sourceType mandatory
   onSuccess?: () => void;
 }
 
@@ -29,8 +36,15 @@ async function submitSource(data: {
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || "Failed to submit source");
+    const errorBody = await response.text(); // Read the body once
+    let errorMessage = "Failed to submit source";
+    try {
+      const errorData = JSON.parse(errorBody);
+      errorMessage = errorData.message || JSON.stringify(errorData);
+    } catch {
+      errorMessage = errorBody;
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -38,14 +52,12 @@ async function submitSource(data: {
 
 export function useSourceMutation({
   sourceId,
-  queryKeyType,
+  sourceType,
   onSuccess,
-}: UseSourceMutationOptions = {}) {
+}: UseSourceMutationOptions) {
   const queryClient = useQueryClient();
   const isUpdate = !!sourceId;
-  const endpoint = sourceId
-    ? `/api/follow/sources/${sourceId}`
-    : "/api/follow/sources";
+  const endpoint = getApiEndpoint(sourceType, sourceId);
 
   return useMutation({
     mutationFn: (formData: Record<string, unknown>) =>
@@ -55,25 +67,15 @@ export function useSourceMutation({
         isUpdate,
       }),
     onSuccess: () => {
-      // 显示成功消息
       toast.success(
         isUpdate ? "Source updated successfully" : "Source added successfully"
       );
-
-      // 执行用户提供的成功回调
       onSuccess?.();
 
-      // Invalidate 相关查询
+      // With useFollow, we only need to invalidate the main 'sources' query
       queryClient.invalidateQueries({ queryKey: ["sources"] });
-      if (queryKeyType) {
-        queryClient.invalidateQueries({ queryKey: ["sources", queryKeyType] });
-      }
-      if (sourceId) {
-        queryClient.invalidateQueries({ queryKey: ["source", sourceId] });
-      }
     },
     onError: (error: Error) => {
-      // 增强的错误处理
       console.error("Failed to submit source:", error);
       toast.error(
         error.message ||

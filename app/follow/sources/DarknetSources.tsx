@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { Source, DarknetSourceConfig, Proxy } from "@/lib/generated/prisma";
@@ -9,7 +10,7 @@ import {
   DataTableAction,
 } from "@/components/common";
 import SourceDeleteAlert from "./SourceDeleteAlert";
-import DarknetSourceDialog from "./DarknetSourceDialog";
+import SourceDialog from "./SourceDialog";
 
 interface Props {
   sources: (Source & { darknet: DarknetSourceConfig & { proxy: Proxy } })[];
@@ -21,7 +22,16 @@ type DarknetSource = Source & {
 };
 
 const DarknetSources = ({ sources, proxies }: Props) => {
-  // 定义表格列配置
+  const [editingSource, setEditingSource] = useState<DarknetSource | undefined>();
+
+  const handleEdit = (source: DarknetSource) => {
+    setEditingSource(source);
+  };
+
+  const handleCloseDialog = () => {
+    setEditingSource(undefined);
+  };
+
   const columns: DataTableColumn<DarknetSource>[] = [
     {
       key: "name",
@@ -54,20 +64,13 @@ const DarknetSources = ({ sources, proxies }: Props) => {
     },
   ];
 
-  // 定义操作配置
   const actions: DataTableAction<DarknetSource>[] = [
     {
       type: "edit",
       render: (source) => (
-        <DarknetSourceDialog
-          proxies={proxies}
-          source={source}
-          triggerButton={
-            <Button size="sm" variant="outline">
-              <PencilIcon className="size-3" />
-            </Button>
-          }
-        />
+        <Button size="sm" variant="outline" onClick={() => handleEdit(source)}>
+          <PencilIcon className="size-3" />
+        </Button>
       ),
     },
     {
@@ -87,12 +90,21 @@ const DarknetSources = ({ sources, proxies }: Props) => {
   ];
 
   return (
-    <DataTable
-      data={sources}
-      columns={columns}
-      actions={actions}
-      emptyMessage="No darknet sources found. Add your first darknet source to get started."
-    />
+    <>
+      <SourceDialog
+        sourceType="DARKNET"
+        source={editingSource}
+        proxies={proxies}
+        open={!!editingSource}
+        onOpenChange={(open) => !open && handleCloseDialog()}
+      />
+      <DataTable
+        data={sources}
+        columns={columns}
+        actions={actions}
+        emptyMessage="No darknet sources found. Add your first darknet source to get started."
+      />
+    </>
   );
 };
 

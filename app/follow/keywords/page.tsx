@@ -2,27 +2,12 @@
 
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import KeywordSettinggCard from "./KeywordSetting";
+import KeywordSettingCard from "./KeywordSetting";
 import CategorySettingCard from "./CategorySetting";
-import { Category } from "@/lib/generated/prisma";
-import { useQuery } from "@tanstack/react-query";
-
-// Fetcher function for categories
-async function fetchCategories() {
-  const response = await fetch("/api/follow/categories");
-  if (!response.ok) {
-    throw new Error("Failed to fetch categories");
-  }
-  const data = await response.json();
-  // Categories API returns array directly, not { items: [...] }
-  return Array.isArray(data) ? data : [];
-}
+import { useFollow } from "@/hooks/useFollow";
 
 const KeywordsPage = () => {
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: fetchCategories,
-  });
+  const { categories } = useFollow();
 
   return (
     <Tabs defaultValue="keywords" className="space-y-2">
@@ -31,7 +16,7 @@ const KeywordsPage = () => {
         <TabsTrigger value="categories">Categories</TabsTrigger>
       </TabsList>
       <TabsContent value="keywords">
-        <KeywordSettinggCard categories={categories} />
+        <KeywordSettingCard categories={categories} />
       </TabsContent>
       <TabsContent value="categories">
         <CategorySettingCard />

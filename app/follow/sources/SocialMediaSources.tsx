@@ -1,16 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { SocialMediaSourceConfig, Source, Proxy } from "@/lib/generated/prisma";
-import { SocialConfigByPlatform } from "@/app/api/_utils/zod";
-import { z } from "zod";
 import {
   DataTable,
   DataTableColumn,
   DataTableAction,
 } from "@/components/common";
-import SocialMediaSourceDialog from "./SocialMediaSourceDialog";
+import SourceDialog from "./SourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
 
 interface Props {
@@ -23,7 +22,16 @@ type SocialMediaSource = Source & { social: SocialMediaSourceConfig } & {
 };
 
 const SocialMediaSources = ({ sources, proxies }: Props) => {
-  // 定义表格列配置
+  const [editingSource, setEditingSource] = useState<SocialMediaSource | undefined>();
+
+  const handleEdit = (source: SocialMediaSource) => {
+    setEditingSource(source);
+  };
+
+  const handleCloseDialog = () => {
+    setEditingSource(undefined);
+  };
+
   const columns: DataTableColumn<SocialMediaSource>[] = [
     {
       key: "name",
@@ -47,24 +55,13 @@ const SocialMediaSources = ({ sources, proxies }: Props) => {
     },
   ];
 
-  // 定义操作配置
   const actions: DataTableAction<SocialMediaSource>[] = [
     {
       type: "edit",
       render: (source) => (
-        <SocialMediaSourceDialog
-          proxies={proxies}
-          source={
-            source as Source & {
-              social: z.infer<typeof SocialConfigByPlatform>;
-            } & { proxy: Proxy }
-          }
-          triggerButton={
-            <Button size="sm" variant="outline">
-              <PencilIcon className="size-3" />
-            </Button>
-          }
-        />
+        <Button size="sm" variant="outline" onClick={() => handleEdit(source)}>
+          <PencilIcon className="size-3" />
+        </Button>
       ),
     },
     {
@@ -84,12 +81,21 @@ const SocialMediaSources = ({ sources, proxies }: Props) => {
   ];
 
   return (
-    <DataTable
-      data={sources}
-      columns={columns}
-      actions={actions}
-      emptyMessage="No social media sources found. Add your first social media source to get started."
-    />
+    <>
+      <SourceDialog
+        sourceType="SOCIAL_MEDIA"
+        source={editingSource}
+        proxies={proxies}
+        open={!!editingSource}
+        onOpenChange={(open) => !open && handleCloseDialog()}
+      />
+      <DataTable
+        data={sources}
+        columns={columns}
+        actions={actions}
+        emptyMessage="No social media sources found. Add your first social media source to get started."
+      />
+    </>
   );
 };
 

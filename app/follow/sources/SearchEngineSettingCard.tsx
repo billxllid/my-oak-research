@@ -4,54 +4,41 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PencilIcon, TrashIcon, PlusIcon, Search } from "lucide-react";
-import { Source, Proxy } from "@/lib/generated/prisma";
-import { SearchEngineSourceConfig } from "@/lib/generated/prisma";
+import { Source, Proxy, SearchEngineSourceConfig } from "@/lib/generated/prisma";
 import {
   SettingCard,
   DataTable,
   DataTableColumn,
   DataTableAction,
 } from "@/components/common";
-import SearchEngineSourceDialog from "./SearchEngineSourceDialog";
+import SourceDialog from "./SourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
-import { useQuery } from "@tanstack/react-query";
+import { useFollow } from "@/hooks/useFollow";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface Props {
-  proxies: Proxy[];
-  initialSources?: (Source & { search: SearchEngineSourceConfig } & {
-    proxy: Proxy;
-  })[];
-}
 
 type SearchEngineSource = Source & { search: SearchEngineSourceConfig } & {
   proxy: Proxy;
 };
 
-// Fetcher function for sources
-async function fetchSources() {
-  const response = await fetch("/api/follow/sources?type=SEARCH_ENGINE");
-  if (!response.ok) {
-    throw new Error("Failed to fetch sources");
-  }
-  const data = await response.json();
-  // Ensure we always return an array, never undefined
-  return Array.isArray(data?.items) ? data.items : [];
-}
-
-const SearchEngineSettingCard = ({ proxies, initialSources }: Props) => {
+const SearchEngineSettingCard = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [editingSource, setEditingSource] = useState<SearchEngineSource | undefined>(
+    undefined
+  );
 
-  // Use React Query to fetch sources data
-  const {
-    data: sources,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["sources", "SEARCH_ENGINE"],
-    queryFn: fetchSources,
-    initialData: initialSources,
-  });
+  const { sources, proxies, sourcesQuery } = useFollow();
+  const { isLoading, error } = sourcesQuery;
+
+  const handleEdit = (source: SearchEngineSource) => {
+    setEditingSource(source);
+    setDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingSource(undefined);
+    setDialogOpen(true);
+  };
 
   if (error) {
     return (
@@ -64,23 +51,18 @@ const SearchEngineSettingCard = ({ proxies, initialSources }: Props) => {
     );
   }
 
-  const typeFilteredSources =
+  const searchEngineSources =
     sources?.filter(
-      (s: Source & { search: SearchEngineSourceConfig } & { proxy: Proxy }) =>
-        s.type === "SEARCH_ENGINE" && s.search
+      (s) => s.type === "SEARCH_ENGINE" && s.search
     ) || [];
 
-  // 应用搜索筛选
-  const filteredSources = typeFilteredSources.filter(
-    (
-      source: Source & { search: SearchEngineSourceConfig } & { proxy: Proxy }
-    ) =>
+  const filteredSources = searchEngineSources.filter(
+    (source) =>
       source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.search?.query?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 定义表格列配置
   const columns: DataTableColumn<SearchEngineSource>[] = [
     {
       key: "name",
@@ -112,20 +94,13 @@ const SearchEngineSettingCard = ({ proxies, initialSources }: Props) => {
     },
   ];
 
-  // 定义操作配置
   const actions: DataTableAction<SearchEngineSource>[] = [
     {
       type: "edit",
       render: (source) => (
-        <SearchEngineSourceDialog
-          triggerButton={
-            <Button size="sm" variant="outline">
-              <PencilIcon className="size-3" />
-            </Button>
-          }
-          proxies={proxies}
-          source={source}
-        />
+        <Button size="sm" variant="outline" onClick={() => handleEdit(source)}>
+          <PencilIcon className="size-3" />
+        </Button>
       ),
     },
     {
@@ -144,11 +119,12 @@ const SearchEngineSettingCard = ({ proxies, initialSources }: Props) => {
     },
   ];
 
-  // 筛选组件
   const filterComponent = (
     <div className="flex items-center gap-4">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search
+          className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+        />
         <Input
           placeholder="Search search engines..."
           value={searchQuery}
@@ -156,15 +132,10 @@ const SearchEngineSettingCard = ({ proxies, initialSources }: Props) => {
           className="pl-9"
         />
       </div>
-      <SearchEngineSourceDialog
-        triggerButton={
-          <Button>
-            <PlusIcon className="size-4" />
-            Add Search Engine
-          </Button>
-        }
-        proxies={proxies}
-      />
+      <Button onClick={handleAdd}>
+        <PlusIcon className="size-4" />
+        Add Search Engine
+      </Button>
     </div>
   );
 
@@ -176,6 +147,18 @@ const SearchEngineSettingCard = ({ proxies, initialSources }: Props) => {
       countLabel="search engines"
       filterComponent={filterComponent}
     >
+      <SourceDialog
+        sourceType="SEARCH_ENGINE"
+        source={editingSource}
+        proxies={proxies}
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditingSource(undefined);
+          }
+        }}
+      />
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-12 w-full" />
