@@ -139,23 +139,33 @@ const WebFields = ({ register, control, errors, proxies, watch }) => {
 };
 
 
-const SourceDialog = ({ triggerButton, source, proxies, sourceType, onOpenChange, open }) => {
-  const isUpdate = !!source;
+const SourceDialog = ({ triggerButton, source: propSource, proxies, sourceType: propSourceType, onOpenChange, open }) => {
+  const [currentSource, setCurrentSource] = useState(propSource);
+  const [currentSourceType, setCurrentSourceType] = useState(propSourceType);
+
+  useEffect(() => {
+    if (open) {
+      setCurrentSource(propSource);
+      setCurrentSourceType(propSourceType);
+    }
+  }, [open, propSource, propSourceType]);
+
+  const isUpdate = !!currentSource;
 
   const { control, register, handleSubmit, watch, formState: { errors }, reset } = useForm({
-    resolver: zodResolver(getValidationSchema(sourceType || (source?.type || 'WEB'), isUpdate)),
-    defaultValues: getDefaultValues(source, sourceType),
+    resolver: zodResolver(getValidationSchema(currentSourceType || (currentSource?.type || 'WEB'), isUpdate)),
+    defaultValues: getDefaultValues(currentSource, currentSourceType),
   });
 
   useEffect(() => {
     if (open) {
-      reset(getDefaultValues(source, sourceType));
+      reset(getDefaultValues(currentSource, currentSourceType));
     }
-  }, [open, source, sourceType, reset]);
+  }, [open, currentSource, currentSourceType, reset]);
 
   const mutation = useSourceMutation({
-    sourceId: source?.id,
-    sourceType: sourceType || source.type,
+    sourceId: currentSource?.id,
+    sourceType: currentSourceType || currentSource.type,
     onSuccess: () => {
       onOpenChange(false);
       if (!isUpdate) {
@@ -170,17 +180,17 @@ const SourceDialog = ({ triggerButton, source, proxies, sourceType, onOpenChange
     <SettingEditDialog
       props={{ open, onOpenChange }}
       title={isUpdate ? "Edit Source" : "Add Source"}
-      description={isUpdate ? "Edit this source." : `Add a new ${sourceType} source.`}
+      description={isUpdate ? "Edit this source." : `Add a new ${currentSourceType} source.`}
       triggerButton={triggerButton}
       buttonText={mutation.isPending ? (isUpdate ? "Updating..." : "Adding...") : (isUpdate ? "Update" : "Add")}
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="grid gap-4">
         <CommonFields register={register} errors={errors} />
-        { (sourceType || source.type) === 'WEB' && <WebFields register={register} control={control} errors={errors} proxies={proxies} watch={watch} /> }
-        { (sourceType || source.type) === 'DARKNET' && <DarknetFields register={register} control={control} errors={errors} proxies={proxies} watch={watch} /> }
-        { (sourceType || source.type) === 'SOCIAL_MEDIA' && <SocialMediaFields register={register} control={control} errors={errors} proxies={proxies} watch={watch} /> }
-        { (sourceType || source.type) === 'SEARCH_ENGINE' && <SearchEngineFields register={register} control={control} errors={errors} proxies={proxies} watch={watch} /> }
+        { (currentSourceType || currentSource.type) === 'WEB' && <WebFields register={register} control={control} errors={errors} proxies={proxies} watch={watch} /> }
+        { (currentSourceType || currentSource.type) === 'DARKNET' && <DarknetFields register={register} control={control} errors={errors} proxies={proxies} watch={watch} /> }
+        { (currentSourceType || currentSource.type) === 'SOCIAL_MEDIA' && <SocialMediaFields register={register} control={control} errors={errors} proxies={proxies} watch={watch} /> }
+        { (currentSourceType || currentSource.type) === 'SEARCH_ENGINE' && <SearchEngineFields register={register} control={control} errors={errors} proxies={proxies} watch={watch} /> }
         {/* Add other source type fields here */}
       </div>
     </SettingEditDialog>
