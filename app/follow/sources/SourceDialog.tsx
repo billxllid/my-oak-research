@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -143,9 +143,15 @@ const SourceDialog = ({ triggerButton, source, proxies, sourceType, onOpenChange
   const isUpdate = !!source;
 
   const { control, register, handleSubmit, watch, formState: { errors }, reset } = useForm({
-    resolver: zodResolver(getValidationSchema(sourceType || source.type, isUpdate)),
+    resolver: zodResolver(getValidationSchema(sourceType || (source?.type || 'WEB'), isUpdate)),
     defaultValues: getDefaultValues(source, sourceType),
   });
+
+  useEffect(() => {
+    if (open) {
+      reset(getDefaultValues(source, sourceType));
+    }
+  }, [open, source, sourceType, reset]);
 
   const mutation = useSourceMutation({
     sourceId: source?.id,
