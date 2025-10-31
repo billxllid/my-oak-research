@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PencilIcon, TrashIcon, PlusIcon, Search } from "lucide-react";
-import { Source, Proxy, SearchEngineSourceConfig } from "@/lib/generated/prisma";
 import {
   SettingCard,
   DataTable,
@@ -15,17 +14,21 @@ import SourceDialog from "./SourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
 import { useFollow } from "@/hooks/useFollow";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SearchEngineSource, SourceWithRelations } from "@/lib/types";
 
-type SearchEngineSource = Source & { search: SearchEngineSourceConfig } & {
-  proxy: Proxy;
-};
+const isSearchEngineSource = (
+  source: SourceWithRelations
+): source is SearchEngineSource =>
+  source.type === "SEARCH_ENGINE" &&
+  "search" in source &&
+  Boolean(source.search);
 
 const SearchEngineSettingCard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [editingSource, setEditingSource] = useState<SearchEngineSource | undefined>(
-    undefined
-  );
+  const [editingSource, setEditingSource] = useState<
+    SearchEngineSource | undefined
+  >(undefined);
 
   const { sources, proxies, sourcesQuery } = useFollow();
   const { isLoading, error } = sourcesQuery;
@@ -51,10 +54,7 @@ const SearchEngineSettingCard = () => {
     );
   }
 
-  const searchEngineSources =
-    sources?.filter(
-      (s) => s.type === "SEARCH_ENGINE" && s.search
-    ) || [];
+  const searchEngineSources = sources?.filter(isSearchEngineSource) ?? [];
 
   const filteredSources = searchEngineSources.filter(
     (source) =>
@@ -122,9 +122,7 @@ const SearchEngineSettingCard = () => {
   const filterComponent = (
     <div className="flex items-center gap-4">
       <div className="relative flex-1">
-        <Search
-          className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-        />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search search engines..."
           value={searchQuery}

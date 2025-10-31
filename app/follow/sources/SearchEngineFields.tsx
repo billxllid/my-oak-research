@@ -1,11 +1,20 @@
-import { Control, UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
+import {
+  Control,
+  UseFormRegister,
+  FieldErrors,
+  UseFormWatch,
+} from "react-hook-form";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/business";
 import SelectProxy from "./SelectProxy";
 import { Proxy } from "@/lib/generated/prisma";
-import { SourceCreateSchema, SearchEngineKindEnum } from "@/app/api/_utils/zod";
+import {
+  SourceCreateSchema,
+  SearchEngineKindEnum,
+  SearchEngineSourceCreateSchema,
+} from "@/app/api/_utils/zod";
 import { Controller } from "react-hook-form";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { SelectItem } from "@/components/ui/select";
@@ -26,7 +35,12 @@ export const SearchEngineFields = ({
   proxies,
   watch,
 }: SearchEngineFieldsProps) => {
-  const searchEngineKind = watch("search.engine") as SearchEngineKindEnum | undefined;
+  const searchEngineKind = watch("search.engine") as
+    | z.infer<typeof SearchEngineKindEnum>
+    | undefined;
+  const searchErrors = errors as FieldErrors<
+    z.infer<typeof SearchEngineSourceCreateSchema>
+  >;
   return (
     <>
       <div className="grid gap-3">
@@ -48,18 +62,24 @@ export const SearchEngineFields = ({
             </ControlledSelect>
           )}
         />
-        <ErrorMessage>{errors.search?.engine?.message}</ErrorMessage>
+        <ErrorMessage>
+          {searchErrors.search?.engine?.message?.toString()}
+        </ErrorMessage>
       </div>
       {searchEngineKind === "CUSTOM" && (
         <div className="grid gap-3">
-          <Label htmlFor="search.customConfig">Custom Engine Config (JSON)</Label>
+          <Label htmlFor="search.customConfig">
+            Custom Engine Config (JSON)
+          </Label>
           <Textarea
             id="search.customConfig"
             placeholder={'{ "key": "value" }'}
             rows={5}
             {...register("search.customConfig")}
           />
-          <ErrorMessage>{errors.search?.customConfig?.message}</ErrorMessage>
+          <ErrorMessage>
+            {searchErrors.search?.customConfig?.message?.toString()}
+          </ErrorMessage>
         </div>
       )}
       <div className="grid gap-3">
@@ -69,7 +89,9 @@ export const SearchEngineFields = ({
           placeholder="Query"
           {...register("search.query")}
         />
-        <ErrorMessage>{errors.search?.query?.message}</ErrorMessage>
+        <ErrorMessage>
+          {searchErrors.search?.query?.message?.toString()}
+        </ErrorMessage>
       </div>
       <div className="grid gap-3">
         <Label htmlFor="search.region">Region</Label>
@@ -78,7 +100,9 @@ export const SearchEngineFields = ({
           placeholder="Region"
           {...register("search.region")}
         />
-        <ErrorMessage>{errors.search?.region?.message}</ErrorMessage>
+        <ErrorMessage>
+          {searchErrors.search?.region?.message?.toString()}
+        </ErrorMessage>
       </div>
       <div className="grid gap-3">
         <Label htmlFor="search.lang">Lang</Label>
@@ -87,7 +111,9 @@ export const SearchEngineFields = ({
           placeholder="Lang"
           {...register("search.lang")}
         />
-        <ErrorMessage>{errors.search?.lang?.message}</ErrorMessage>
+        <ErrorMessage>
+          {searchErrors.search?.lang?.message?.toString()}
+        </ErrorMessage>
       </div>
       <div className="grid gap-3">
         <Label htmlFor="search.apiEndpoint">API Endpoint</Label>
@@ -96,7 +122,9 @@ export const SearchEngineFields = ({
           placeholder="API Endpoint"
           {...register("search.apiEndpoint")}
         />
-        <ErrorMessage>{errors.search?.apiEndpoint?.message}</ErrorMessage>
+        <ErrorMessage>
+          {searchErrors.search?.apiEndpoint?.message?.toString()}
+        </ErrorMessage>
       </div>
       <div className="grid gap-3">
         <Label htmlFor="search.options">Options (JSON)</Label>
@@ -105,9 +133,16 @@ export const SearchEngineFields = ({
           placeholder="{}"
           {...register("search.options")}
         />
-        <ErrorMessage>{errors.search?.options?.message}</ErrorMessage>
+        <ErrorMessage>
+          {searchErrors.search?.options?.message?.toString()}
+        </ErrorMessage>
       </div>
-      <SelectProxy control={control} proxies={proxies} error={errors.proxyId?.message} />
+      <SelectProxy
+        control={control}
+        proxies={proxies}
+        name="search.proxyId"
+        error={searchErrors.proxyId?.message?.toString()}
+      />
     </>
   );
 };
