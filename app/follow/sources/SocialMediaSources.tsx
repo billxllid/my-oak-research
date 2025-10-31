@@ -13,16 +13,21 @@ import SourceDialog from "./SourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
 
 interface Props {
-  sources: (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
+  sources: (Source & { social: SocialMediaSourceConfig } & {
+    proxy?: Proxy | null;
+  })[];
   proxies: Proxy[];
 }
 
-type SocialMediaSource = Source & { social: SocialMediaSourceConfig } & {
-  proxy: Proxy;
+type SocialMediaSource = Source & {
+  social: SocialMediaSourceConfig;
+  proxy?: Proxy | null;
 };
 
 const SocialMediaSources = ({ sources, proxies }: Props) => {
-  const [editingSource, setEditingSource] = useState<SocialMediaSource | undefined>();
+  const [editingSource, setEditingSource] = useState<
+    SocialMediaSource | undefined
+  >();
 
   const handleEdit = (source: SocialMediaSource) => {
     setEditingSource(source);
@@ -90,7 +95,7 @@ const SocialMediaSources = ({ sources, proxies }: Props) => {
         onOpenChange={(open) => !open && handleCloseDialog()}
       />
       <DataTable
-        data={sources}
+        data={sources as SocialMediaSource[]}
         columns={columns}
         actions={actions}
         emptyMessage="No social media sources found. Add your first social media source to get started."

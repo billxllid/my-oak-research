@@ -1,11 +1,20 @@
-import { Control, UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
+import {
+  Control,
+  UseFormRegister,
+  FieldErrors,
+  UseFormWatch,
+  FieldError,
+} from "react-hook-form";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/business";
 import SelectProxy from "./SelectProxy";
 import { Proxy } from "@/lib/generated/prisma";
-import { SourceCreateSchema } from "@/app/api/_utils/zod"; // Adjust if you have a specific social media schema
+import {
+  SourceCreateSchema,
+  SocialMediaSourceCreateSchema,
+} from "@/app/api/_utils/zod"; // Adjust if you have a specific social media schema
 import { Controller } from "react-hook-form";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { SelectItem } from "@/components/ui/select";
@@ -27,6 +36,25 @@ export const SocialMediaFields = ({
   watch,
 }: SocialMediaFieldsProps) => {
   const socialPlatform = watch("social.platform") as SocialPlatform | undefined;
+  const socialErrors = errors as FieldErrors<
+    z.infer<typeof SocialMediaSourceCreateSchema>
+  >;
+  const socialConfigErrors = socialErrors.social?.config as
+    | FieldErrors<Record<string, unknown>>
+    | undefined;
+
+  const getConfigErrorMessage = (key: string) => {
+    const value = socialConfigErrors?.[key];
+    if (!value) return undefined;
+    if (
+      typeof value === "object" &&
+      "message" in value &&
+      (value as FieldError).message
+    ) {
+      return (value as FieldError).message?.toString();
+    }
+    return undefined;
+  };
 
   return (
     <>
@@ -49,7 +77,9 @@ export const SocialMediaFields = ({
             </ControlledSelect>
           )}
         />
-        <ErrorMessage>{errors.social?.platform?.message}</ErrorMessage>
+        <ErrorMessage>
+          {socialErrors.social?.platform?.message?.toString()}
+        </ErrorMessage>
       </div>
 
       {socialPlatform === "X" && (
@@ -61,7 +91,7 @@ export const SocialMediaFields = ({
               placeholder="X User"
               {...register("social.config.user")}
             />
-            <ErrorMessage>{errors.social?.config?.X?.user?.message}</ErrorMessage>
+            <ErrorMessage>{getConfigErrorMessage("user")}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="social.config.listId">List ID</Label>
@@ -70,7 +100,7 @@ export const SocialMediaFields = ({
               placeholder="X List ID"
               {...register("social.config.listId")}
             />
-            <ErrorMessage>{errors.social?.config?.X?.listId?.message}</ErrorMessage>
+            <ErrorMessage>{getConfigErrorMessage("listId")}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="social.config.query">Query</Label>
@@ -79,7 +109,7 @@ export const SocialMediaFields = ({
               placeholder="X Query"
               {...register("social.config.query")}
             />
-            <ErrorMessage>{errors.social?.config?.X?.query?.message}</ErrorMessage>
+            <ErrorMessage>{getConfigErrorMessage("query")}</ErrorMessage>
           </div>
         </>
       )}
@@ -93,7 +123,7 @@ export const SocialMediaFields = ({
               placeholder="@channel or channel_id"
               {...register("social.config.channel")}
             />
-            <ErrorMessage>{errors.social?.config?.TELEGRAM?.channel?.message}</ErrorMessage>
+            <ErrorMessage>{getConfigErrorMessage("channel")}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="social.config.mode">Mode</Label>
@@ -102,7 +132,7 @@ export const SocialMediaFields = ({
               placeholder="Mode"
               {...register("social.config.mode")}
             />
-            <ErrorMessage>{errors.social?.config?.TELEGRAM?.mode?.message}</ErrorMessage>
+            <ErrorMessage>{getConfigErrorMessage("mode")}</ErrorMessage>
           </div>
         </>
       )}
@@ -116,7 +146,7 @@ export const SocialMediaFields = ({
               placeholder="subreddit name"
               {...register("social.config.subreddit")}
             />
-            <ErrorMessage>{errors.social?.config?.REDDIT?.subreddit?.message}</ErrorMessage>
+            <ErrorMessage>{getConfigErrorMessage("subreddit")}</ErrorMessage>
           </div>
           <div className="grid gap-3">
             <Label htmlFor="social.config.sort">Sort</Label>
@@ -125,12 +155,17 @@ export const SocialMediaFields = ({
               placeholder="Sort"
               {...register("social.config.sort")}
             />
-            <ErrorMessage>{errors.social?.config?.REDDIT?.sort?.message}</ErrorMessage>
+            <ErrorMessage>{getConfigErrorMessage("sort")}</ErrorMessage>
           </div>
         </>
       )}
 
-      <SelectProxy control={control} proxies={proxies} error={errors.proxyId?.message} />
+      <SelectProxy
+        control={control}
+        proxies={proxies}
+        name="social.proxyId"
+        error={socialErrors.social?.proxyId?.message?.toString()}
+      />
     </>
   );
 };

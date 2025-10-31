@@ -9,6 +9,15 @@ import SourceDialog from "./SourceDialog";
 import SocialMediaSources from "./SocialMediaSources";
 import { useFollow } from "@/hooks/useFollow";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SocialMediaSource, SourceWithRelations } from "@/lib/types";
+import type { Proxy } from "@/lib/generated/prisma";
+
+const isSocialMediaSource = (
+  source: SourceWithRelations
+): source is SocialMediaSource =>
+  source.type === "SOCIAL_MEDIA" &&
+  "social" in source &&
+  Boolean(source.social);
 
 const SocialMediaSettingCard = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,10 +37,8 @@ const SocialMediaSettingCard = () => {
     );
   }
 
-  const socialMediaSources =
-    sources?.filter(
-      (s) => s.type === "SOCIAL_MEDIA" && s.social
-    ) || [];
+  const socialMediaSources = (sources?.filter(isSocialMediaSource) ??
+    []) as SocialMediaSource[];
 
   const filteredSources = socialMediaSources.filter(
     (source) =>
@@ -39,6 +46,12 @@ const SocialMediaSettingCard = () => {
       source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.social?.platform?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const dataForTable: Array<SocialMediaSource & { proxy: Proxy | null }> =
+    filteredSources.map((source) => ({
+      ...source,
+      proxy: source.proxy ?? null,
+    }));
 
   const filterComponent = (
     <div className="flex items-center gap-4">
@@ -81,7 +94,7 @@ const SocialMediaSettingCard = () => {
           <Skeleton className="h-12 w-full" />
         </div>
       ) : (
-        <SocialMediaSources sources={filteredSources} proxies={proxies} />
+        <SocialMediaSources sources={dataForTable} proxies={proxies} />
       )}
     </SettingCard>
   );
