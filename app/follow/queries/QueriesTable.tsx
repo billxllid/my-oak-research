@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
-import { Query, Keyword, Source } from "@/lib/generated/prisma";
+import { Keyword, Source } from "@/lib/generated/prisma";
 import { QueryWithAggregations } from "@/lib/types";
 import {
   DataTable,
@@ -32,7 +32,7 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
     setEditingQuery(undefined);
   };
 
-  const columns: DataTableColumn<Query>[] = [
+  const columns: DataTableColumn<QueryWithAggregations>[] = [
     {
       key: "name",
       label: "Name",
@@ -54,12 +54,12 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
     {
       key: "keywordsCount",
       label: "Keywords",
-      render: (query) => query.keywords.length || 0,
+      render: (query) => query.keywords?.length ?? query.keywordsCount ?? 0,
     },
     {
       key: "sourcesCount",
       label: "Sources",
-      render: (query) => query.sources.length || 0,
+      render: (query) => query.sources?.length ?? query.sourcesCount ?? 0,
     },
     {
       key: "enabled",
@@ -68,7 +68,7 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
     },
   ];
 
-  const actions: DataTableAction<Query>[] = [
+  const actions: DataTableAction<QueryWithAggregations>[] = [
     {
       type: "edit",
       render: (query) => (
