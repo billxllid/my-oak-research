@@ -1,26 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusIcon, Search } from "lucide-react";
-import { Proxy } from "@/lib/generated/prisma";
 import { SettingCard } from "@/components/common";
 import EditProxySettingDialog from "./ProxySettingDialog";
 import Proxies from "./Proxies";
+import { useFollow } from "@/hooks/useFollow";
 
-interface Props {
-  proxies: Proxy[];
-}
-
-const ProxySettingCard = ({ proxies }: Props) => {
+const ProxySettingCard = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { proxies = [] } = useFollow();
 
   // 筛选数据
-  const filteredProxies = proxies.filter(
-    (proxy) =>
-      proxy.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      proxy.url?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProxies = useMemo(
+    () =>
+      proxies.filter(
+        (proxy) =>
+          proxy.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          proxy.url?.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [proxies, searchQuery]
   );
 
   // 筛选组件

@@ -7,11 +7,8 @@ import SocialMediaSettingCard from "./SocialMediaSettingCard";
 import DarknetSettingCard from "./DarknetSettingCard";
 import SearchEngineSettingCard from "./SearchEngineSettingCard";
 import ProxySettingCard from "./ProxySettingCard";
-import { useFollow } from "@/hooks/useFollow";
 
 const Sources = () => {
-  const { proxies } = useFollow();
-
   return (
     <div>
       <Tabs defaultValue="web-sites" className="space-y-2">
@@ -23,19 +20,19 @@ const Sources = () => {
           <TabsTrigger value="proxy">Proxy</TabsTrigger>
         </TabsList>
         <TabsContent value="web-sites">
-          <WebSiteSettingCard proxies={proxies} />
+          <WebSiteSettingCard />
         </TabsContent>
         <TabsContent value="social-media">
-          <SocialMediaSettingCard proxies={proxies} />
+          <SocialMediaSettingCard />
         </TabsContent>
         <TabsContent value="darknet">
-          <DarknetSettingCard proxies={proxies} />
+          <DarknetSettingCard />
         </TabsContent>
         <TabsContent value="search-engines">
-          <SearchEngineSettingCard proxies={proxies} />
+          <SearchEngineSettingCard />
         </TabsContent>
         <TabsContent value="proxy">
-          <ProxySettingCard proxies={proxies} />
+          <ProxySettingCard />
         </TabsContent>
       </Tabs>
     </div>
