@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { Proxy } from "@/lib/generated/prisma";
@@ -18,14 +18,36 @@ interface Props {
 
 const Proxies = ({ proxies }: Props) => {
   const [editingProxy, setEditingProxy] = useState<Proxy | undefined>();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleEdit = (proxy: Proxy) => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
     setEditingProxy(proxy);
+    setDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
-    setEditingProxy(undefined);
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    closeTimerRef.current = setTimeout(() => {
+      setEditingProxy(undefined);
+      closeTimerRef.current = null;
+    }, 220);
   };
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
 
   const columns: DataTableColumn<Proxy>[] = [
     {
@@ -54,14 +76,9 @@ const Proxies = ({ proxies }: Props) => {
     {
       type: "edit",
       render: (proxy) => (
-        <EditProxySettingDialog
-          triggerButton={
-            <Button size="sm" variant="outline" onClick={() => handleEdit(proxy)}>
-              <PencilIcon className="size-3" />
-            </Button>
-          }
-          currentProxy={proxy}
-        />
+        <Button size="sm" variant="outline" onClick={() => handleEdit(proxy)}>
+          <PencilIcon className="size-3" />
+        </Button>
       ),
     },
     {
@@ -83,8 +100,19 @@ const Proxies = ({ proxies }: Props) => {
     <>
       <EditProxySettingDialog
         currentProxy={editingProxy}
-        open={!!editingProxy}
-        onOpenChange={(open) => !open && handleCloseDialog()}
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDialogOpen(false);
+            handleCloseDialog();
+          } else {
+            if (closeTimerRef.current) {
+              clearTimeout(closeTimerRef.current);
+              closeTimerRef.current = null;
+            }
+            setDialogOpen(true);
+          }
+        }}
         triggerButton={<Button className="hidden" />} // Hidden button for trigger
       />
       <DataTable

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
-import { WebSource, SourceWithRelations } from "@/lib/types";
+import { WebSource } from "@/lib/types";
 import {
   DataTable,
   DataTableColumn,
@@ -90,7 +90,7 @@ const WebSites = ({ sources, proxies }: Props) => {
         onOpenChange={(open) => !open && handleCloseDialog()}
       />
       <DataTable
-        data={sources}
+        data={sources as WebSiteSource[]}
         columns={columns}
         actions={actions}
         emptyMessage="No website sources found. Add your first website source to get started."

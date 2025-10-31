@@ -30,6 +30,7 @@ const EditProxySettingDialog = ({
 }: Props) => {
   const router = useRouter();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const open = controlledOpen ?? uncontrolledOpen;
   const handleOpenChange = onOpenChange ?? setUncontrolledOpen;
   const {
@@ -57,35 +58,38 @@ const EditProxySettingDialog = ({
     });
   }, [currentProxy, reset]);
   const onSubmit = async (data: z.infer<typeof ProxyCreateSchema>) => {
-    console.log(data);
-    const endpoint = currentProxy
-      ? `/api/follow/proxy/${currentProxy.id}`
-      : "/api/follow/proxy";
-    const method = currentProxy ? "PATCH" : "POST";
-    const body = JSON.stringify(data);
-    await fetch(endpoint, { method, body })
-      .then(async (res) => {
-        if (res.ok) {
-          toast.success(
-            currentProxy
-              ? "Proxy setting updated successfully"
-              : "Proxy setting added successfully"
-          );
-          handleClose();
-          setTimeout(() => {
-            router.refresh();
-          }, 200);
-        }
-        console.log(res);
-      })
-      .catch((err) => {
-        toast.error(
-          currentProxy
-            ? "Failed to update proxy setting"
-            : "Failed to add proxy setting"
-        );
-        console.log(err);
-      });
+    setIsSubmitting(true);
+    try {
+      const endpoint = currentProxy
+        ? `/api/follow/proxy/${currentProxy.id}`
+        : "/api/follow/proxy";
+      const method = currentProxy ? "PATCH" : "POST";
+      const body = JSON.stringify(data);
+      const res = await fetch(endpoint, { method, body });
+
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
+      toast.success(
+        currentProxy
+          ? "Proxy setting updated successfully"
+          : "Proxy setting added successfully"
+      );
+      handleClose();
+      setTimeout(() => {
+        router.refresh();
+      }, 200);
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        currentProxy
+          ? "Failed to update proxy setting"
+          : "Failed to add proxy setting"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -101,7 +105,15 @@ const EditProxySettingDialog = ({
           : "Add a new proxy setting to your list."
       }
       triggerButton={triggerButton}
-      buttonText={currentProxy ? "Update" : "Add"}
+      buttonText={
+        isSubmitting
+          ? currentProxy
+            ? "Updating..."
+            : "Adding..."
+          : currentProxy
+          ? "Update"
+          : "Add"
+      }
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="grid gap-4">
