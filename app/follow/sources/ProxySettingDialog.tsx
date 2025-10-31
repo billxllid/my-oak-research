@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Proxy, ProxyType } from "@/lib/generated/prisma";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { ProxyCreateSchema } from "@/app/api/_utils/zod";
@@ -18,15 +18,25 @@ import { SelectItem } from "@/components/ui/select";
 interface Props {
   triggerButton: React.ReactNode;
   currentProxy?: Proxy;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const EditProxySettingDialog = ({ triggerButton, currentProxy }: Props) => {
+const EditProxySettingDialog = ({
+  triggerButton,
+  currentProxy,
+  open: controlledOpen,
+  onOpenChange,
+}: Props) => {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const handleOpenChange = onOpenChange ?? setUncontrolledOpen;
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(ProxyCreateSchema),
@@ -36,6 +46,16 @@ const EditProxySettingDialog = ({ triggerButton, currentProxy }: Props) => {
       url: currentProxy?.url ?? "",
     },
   });
+
+  const handleClose = () => handleOpenChange(false);
+
+  useEffect(() => {
+    reset({
+      name: currentProxy?.name ?? "",
+      type: currentProxy?.type ?? "HTTP",
+      url: currentProxy?.url ?? "",
+    });
+  }, [currentProxy, reset]);
   const onSubmit = async (data: z.infer<typeof ProxyCreateSchema>) => {
     console.log(data);
     const endpoint = currentProxy
@@ -51,7 +71,7 @@ const EditProxySettingDialog = ({ triggerButton, currentProxy }: Props) => {
               ? "Proxy setting updated successfully"
               : "Proxy setting added successfully"
           );
-          setOpen(false);
+          handleClose();
           setTimeout(() => {
             router.refresh();
           }, 200);
@@ -72,7 +92,7 @@ const EditProxySettingDialog = ({ triggerButton, currentProxy }: Props) => {
     <SettingEditDialog
       props={{
         open,
-        onOpenChange: setOpen,
+        onOpenChange: handleOpenChange,
       }}
       title={currentProxy ? "Update Proxy Setting" : "Add Proxy Setting"}
       description={
