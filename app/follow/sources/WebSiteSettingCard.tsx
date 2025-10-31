@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusIcon, Search } from "lucide-react";
 import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
+import { WebSource, SourceWithRelations } from "@/lib/types";
 import { SettingCard } from "@/components/common";
 import SourceDialog from "./SourceDialog";
 import WebSites from "./WebSiteSources";
@@ -30,16 +31,13 @@ const WebSiteSettingCard = () => {
   }
 
   const webSources =
-    sources?.filter(
-      (s: Source & { web: WebSourceConfig } & { proxy: Proxy }) =>
-        s.type === "WEB" && s.web
-    ) || [];
+    sources?.filter((s): s is WebSource => s.type === "WEB" && "web" in s)
+    || [];
 
-  const filteredSources = webSources.filter(
-    (source: Source & { web: WebSourceConfig } & { proxy: Proxy }) =>
-      source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      source.web?.url?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredSources = webSources.filter((source) =>
+    source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    source.web?.url?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filterComponent = (

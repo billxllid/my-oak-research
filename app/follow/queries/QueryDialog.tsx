@@ -1,14 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import React, { useEffect, useMemo } from "react";
+import { Controller, Resolver, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  QueryCreateSchema,
-  QueryUpdateSchema,
-  QueryFrequencyEnum,
-} from "@/app/api/_utils/zod";
+import { QueryCreateSchema, QueryFrequencyEnum } from "@/app/api/_utils/zod";
 import { SettingEditDialog } from "@/components/layout";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -21,8 +17,13 @@ import { Query, Keyword, Source } from "@/lib/generated/prisma";
 import { useQueryMutation } from "@/hooks/useQueryMutation";
 import { MultiSelect } from "@/components/common/multi-select";
 
+type QueryFormValues = z.output<typeof QueryCreateSchema>;
+
 interface Props {
-  query?: Query;
+  query?: Query & {
+    keywords?: Keyword[];
+    sources?: Source[];
+  };
   keywords: Keyword[];
   sources: Source[];
   triggerButton?: React.ReactNode; // Make optional if dialog can be opened programmatically
@@ -40,6 +41,11 @@ const QueryDialog = ({
 }: Props) => {
   const isUpdate = !!query;
 
+  const formResolver = useMemo<Resolver<QueryFormValues>>(
+    () => zodResolver(QueryCreateSchema) as Resolver<QueryFormValues>,
+    []
+  );
+
   const {
     register,
     handleSubmit,
@@ -47,8 +53,8 @@ const QueryDialog = ({
     watch,
     reset,
     formState: { errors },
-  } = useForm<z.infer<typeof QueryCreateSchema>>({
-    resolver: zodResolver(isUpdate ? QueryUpdateSchema : QueryCreateSchema),
+  } = useForm<QueryFormValues>({
+    resolver: formResolver,
     defaultValues: {
       name: query?.name || "",
       description: query?.description || "",
@@ -102,7 +108,7 @@ const QueryDialog = ({
     },
   });
 
-  const onSubmit = (data: z.infer<typeof QueryCreateSchema>) => {
+  const onSubmit: SubmitHandler<QueryFormValues> = (data) => {
     const submittedData = {
       ...data,
       rules: data.rules ? JSON.parse(data.rules) : undefined,
@@ -112,7 +118,10 @@ const QueryDialog = ({
     mutation.mutate(submittedData);
   };
 
-  const availableKeywords = keywords.map((k) => ({ label: k.name, value: k.id }));
+  const availableKeywords = keywords.map((k) => ({
+    label: k.name,
+    value: k.id,
+  }));
   const availableSources = sources.map((s) => ({ label: s.name, value: s.id }));
 
   return (
@@ -138,7 +147,7 @@ const QueryDialog = ({
         <div className="grid gap-3">
           <Label htmlFor="name">Name</Label>
           <Input id="name" placeholder="Query Name" {...register("name")} />
-          <ErrorMessage>{errors.name?.message}</ErrorMessage>
+          <ErrorMessage>{errors.name?.message?.toString()}</ErrorMessage>
         </div>
 
         <div className="grid gap-3">
@@ -149,7 +158,7 @@ const QueryDialog = ({
             rows={3}
             {...register("description")}
           />
-          <ErrorMessage>{errors.description?.message}</ErrorMessage>
+          <ErrorMessage>{errors.description?.message?.toString()}</ErrorMessage>
         </div>
 
         <div className="grid gap-3">
@@ -171,7 +180,7 @@ const QueryDialog = ({
               </ControlledSelect>
             )}
           />
-          <ErrorMessage>{errors.frequency?.message}</ErrorMessage>
+          <ErrorMessage>{errors.frequency?.message?.toString()}</ErrorMessage>
         </div>
 
         {watch("frequency") === "CRONTAB" && (
@@ -182,7 +191,9 @@ const QueryDialog = ({
               placeholder="e.g., 0 0 * * * (daily at midnight)"
               {...register("cronSchedule")}
             />
-            <ErrorMessage>{errors.cronSchedule?.message}</ErrorMessage>
+            <ErrorMessage>
+              {errors.cronSchedule?.message?.toString()}
+            </ErrorMessage>
           </div>
         )}
 
@@ -211,7 +222,7 @@ const QueryDialog = ({
               />
             )}
           />
-          <ErrorMessage>{errors.keywordIds?.message}</ErrorMessage>
+          <ErrorMessage>{errors.keywordIds?.message?.toString()}</ErrorMessage>
         </div>
 
         <div className="grid gap-3">
@@ -228,7 +239,7 @@ const QueryDialog = ({
               />
             )}
           />
-          <ErrorMessage>{errors.sourceIds?.message}</ErrorMessage>
+          <ErrorMessage>{errors.sourceIds?.message?.toString()}</ErrorMessage>
         </div>
 
         <div className="grid gap-3">
@@ -239,7 +250,7 @@ const QueryDialog = ({
             rows={5}
             {...register("rules")}
           />
-          <ErrorMessage>{errors.rules?.message}</ErrorMessage>
+          <ErrorMessage>{errors.rules?.message?.toString()}</ErrorMessage>
         </div>
       </div>
     </SettingEditDialog>

@@ -11,9 +11,27 @@ export async function GET(
     include: {
       keywords: true,
       sources: true,
+      _count: {
+        select: {
+          keywords: true,
+          sources: true,
+        },
+      },
     },
   });
-  return NextResponse.json(query);
+
+  if (!query) {
+    return new NextResponse("Query not found", { status: 404 });
+  }
+
+  const queryWithCounts = {
+    ...query,
+    keywordsCount: query._count?.keywords || 0,
+    sourcesCount: query._count?.sources || 0,
+    _count: undefined,
+  };
+
+  return NextResponse.json(queryWithCounts);
 }
 
 export async function PUT(

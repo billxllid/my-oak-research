@@ -18,6 +18,7 @@ import { ControlledSelect } from "@/components/ui/controlled-select";
 import { SelectItem } from "@/components/ui/select";
 import { ErrorMessage } from "@/components/business";
 import { Source, SourceType } from "@/lib/generated/prisma";
+import { SourceWithRelations } from "@/lib/types";
 import { Textarea } from "@/components/ui/textarea";
 import SelectProxy from "./SelectProxy";
 import { useSourceMutation } from "@/hooks/useSourceMutation";
@@ -46,7 +47,7 @@ const getValidationSchema = (type: SourceType, isUpdate: boolean) => {
 };
 
 // Helper to get default values
-const getDefaultValues = (source?: Source, sourceType?: SourceType) => {
+const getDefaultValues = (source?: SourceWithRelations, sourceType?: SourceType) => {
   const base = {
     name: source?.name || "",
     description: source?.description || "",
@@ -136,8 +137,8 @@ const WebFields = ({ register, control, errors, proxies, watch }) => {
 };
 
 
-const SourceDialog = ({ triggerButton, source: propSource, proxies, sourceType: propSourceType, onOpenChange, open }) => {
-  const [currentSource, setCurrentSource] = useState(propSource);
+const SourceDialog = ({ triggerButton, source: propSource, proxies, sourceType: propSourceType, onOpenChange, open }: {triggerButton?: React.ReactNode; source?: SourceWithRelations; proxies: Proxy[]; sourceType?: SourceType; onOpenChange: (open: boolean) => void; open: boolean;}) => {
+  const [currentSource, setCurrentSource] = useState<SourceWithRelations | undefined>(propSource);
   const [currentSourceType, setCurrentSourceType] = useState(propSourceType);
 
   useEffect(() => {
@@ -171,7 +172,7 @@ const SourceDialog = ({ triggerButton, source: propSource, proxies, sourceType: 
     },
   });
 
-  const onSubmit = (data) => mutation.mutate(data);
+  const onSubmit = (data: z.infer<typeof SourceCreateSchema>) => mutation.mutate(data);
 
   return (
     <SettingEditDialog

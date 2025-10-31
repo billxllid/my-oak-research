@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { Source, WebSourceConfig, Proxy } from "@/lib/generated/prisma";
+import { WebSource, SourceWithRelations } from "@/lib/types";
 import {
   DataTable,
   DataTableColumn,
@@ -13,16 +14,16 @@ import SourceDialog from "./SourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
 
 interface Props {
-  sources: (Source & { web: WebSourceConfig } & { proxy: Proxy })[];
+  sources: WebSource[];
   proxies: Proxy[];
 }
 
 type WebSiteSource = Source & { web: WebSourceConfig } & { proxy: Proxy };
 
 const WebSites = ({ sources, proxies }: Props) => {
-  const [editingSource, setEditingSource] = useState<WebSiteSource | undefined>();
+  const [editingSource, setEditingSource] = useState<WebSource | undefined>();
 
-  const handleEdit = (source: WebSiteSource) => {
+  const handleEdit = (source: WebSource) => {
     setEditingSource(source);
   };
 

@@ -324,8 +324,24 @@ export const QueryCreateSchema = z.object({
   frequency: QueryFrequencyEnum.optional().default("MANUAL"),
   cronSchedule: z.string().optional().nullable(),
   enabled: z.boolean().optional().default(true),
-  keywordIds: z.array(z.string().cuid()).optional().default([]),
-  sourceIds: z.array(z.string().cuid()).optional().default([]),
+  keywordIds: z.preprocess(
+    (val) => {
+      if (Array.isArray(val)) {
+        return val.map((item) => (typeof item === "object" && "id" in item ? item.id : item));
+      }
+      return val;
+    },
+    z.array(z.string().cuid()).optional().default([])
+  ),
+  sourceIds: z.preprocess(
+    (val) => {
+      if (Array.isArray(val)) {
+        return val.map((item) => (typeof item === "object" && "id" in item ? item.id : item));
+      }
+      return val;
+    },
+    z.array(z.string().cuid()).optional().default([])
+  ),
   rules: z.preprocess((val) => parseJson(val), z.any().optional().nullable()),
 }).superRefine((data, ctx) => {
   if (data.frequency === "CRONTAB" && !data.cronSchedule) {

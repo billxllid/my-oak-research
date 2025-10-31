@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { Query, Keyword, Source } from "@/lib/generated/prisma";
+import { QueryWithAggregations } from "@/lib/types";
 import {
   DataTable,
   DataTableColumn,
@@ -13,15 +14,17 @@ import QueryDialog from "./QueryDialog";
 import QueryDeleteAlert from "./QueryDeleteAlert";
 
 interface Props {
-  queries: Query[];
+  queries: QueryWithAggregations[];
   keywords: Keyword[];
   sources: Source[];
 }
 
 const QueriesTable = ({ queries, keywords, sources }: Props) => {
-  const [editingQuery, setEditingQuery] = useState<Query | undefined>();
+  const [editingQuery, setEditingQuery] = useState<
+    QueryWithAggregations | undefined
+  >();
 
-  const handleEdit = (query: Query) => {
+  const handleEdit = (query: QueryWithAggregations) => {
     setEditingQuery(query);
   };
 
@@ -51,12 +54,12 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
     {
       key: "keywordsCount",
       label: "Keywords",
-      render: (query) => query.keywordsCount || query.keywords?.length || 0,
+      render: (query) => query.keywords.length || 0,
     },
     {
       key: "sourcesCount",
       label: "Sources",
-      render: (query) => query.sourcesCount || query.sources?.length || 0,
+      render: (query) => query.sources.length || 0,
     },
     {
       key: "enabled",

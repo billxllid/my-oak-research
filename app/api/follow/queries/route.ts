@@ -1,31 +1,43 @@
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const includeKeywordsAndSources = searchParams.get("includeKeywordsAndSources") === "true";
+
   const queries = await prisma.query.findMany({
-    include: {
-      keywords: true,
-      sources: true,
-      _count: {
-        select: {
+    include: includeKeywordsAndSources
+      ? {
           keywords: true,
           sources: true,
-        },
-      },
-    },
+          _count: {
+            select: {
+              keywords: true,
+              sources: true,
+            },
+          },
+        }
+      : undefined,
     orderBy: {
       updatedAt: 'desc',
     },
   });
 
   // Manually map to include the counts directly on the query object
-  const queriesWithCounts = queries.map(query => ({
-    ...query,
-    keywordsCount: query._count?.keywords || 0,
-    sourcesCount: query._count?.sources || 0,
-    // Remove _count to clean up the object if not needed elsewhere
-    _count: undefined, // Or delete query._count;
-  }));
+    const queriesWithCounts = queries.map((query) => {
+    if (includeKeywordsAndSources) {
+      const { _count, keywords, sources, ...rest } = query as any;
+      return {
+        ...rest,
+        keywords: keywords || [],
+        sources: sources || [],
+        keywordsCount: _count?.keywords || 0,
+        sourcesCount: _count?.sources || 0,
+      };
+    } else {
+      return query;
+    }
+  });
 
   console.log("Queries with counts before sending:", queriesWithCounts);
   return NextResponse.json(queriesWithCounts);

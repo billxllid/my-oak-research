@@ -1,8 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
-import { Keyword, Category, Source, Proxy, Query } from "@/lib/generated/prisma";
+import { Keyword, Category, Proxy } from "@/lib/generated/prisma";
+import { QueryWithAggregations, SourceWithRelations } from "@/lib/types";
 
-const fetcher = async <T,>(url: string): Promise<T[]> => {
+const fetcher = async <T>(url: string): Promise<T[]> => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch from ${url}`);
@@ -21,7 +21,7 @@ const fetcher = async <T,>(url: string): Promise<T[]> => {
 export const useFollow = () => {
   const { data: keywords = [], ...keywordsQuery } = useQuery<Keyword[]>({
     queryKey: ["keywords"],
-    queryFn: () => fetcher("/api/follow/keywords")
+    queryFn: () => fetcher("/api/follow/keywords"),
   });
 
   const { data: categories = [], ...categoriesQuery } = useQuery<Category[]>({
@@ -29,9 +29,12 @@ export const useFollow = () => {
     queryFn: () => fetcher("/api/follow/categories"),
   });
 
-  const { data: sources = [], ...sourcesQuery } = useQuery<Source[]>({
+  const { data: sources = [], ...sourcesQuery } = useQuery<
+    SourceWithRelations[]
+  >({
     queryKey: ["sources"],
-    queryFn: () => fetcher("/api/follow/sources"),
+    queryFn: () =>
+      fetcher<SourceWithRelations>("/api/follow/sources?includeRelations=true"),
   });
 
   const { data: proxies = [], ...proxiesQuery } = useQuery<Proxy[]>({
@@ -39,9 +42,14 @@ export const useFollow = () => {
     queryFn: () => fetcher("/api/follow/proxy"),
   });
 
-  const { data: queries = [], ...queriesQuery } = useQuery<Query[]>({
+  const { data: queries = [], ...queriesQuery } = useQuery<
+    QueryWithAggregations[]
+  >({
     queryKey: ["queries"],
-    queryFn: () => fetcher("/api/follow/queries")
+    queryFn: () =>
+      fetcher<QueryWithAggregations>(
+        "/api/follow/queries?includeKeywordsAndSources=true"
+      ),
   });
 
   return {
