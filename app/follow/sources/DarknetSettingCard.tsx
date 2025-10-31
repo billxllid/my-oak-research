@@ -9,6 +9,12 @@ import DarknetSources from "./DarknetSources";
 import SourceDialog from "./SourceDialog";
 import { useFollow } from "@/hooks/useFollow";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DarknetSource, SourceWithRelations } from "@/lib/types";
+
+const isDarknetSource = (
+  source: SourceWithRelations
+): source is DarknetSource =>
+  source.type === "DARKNET" && "darknet" in source && Boolean(source.darknet);
 
 const DarknetSettingCard = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,12 +34,10 @@ const DarknetSettingCard = () => {
     );
   }
 
-  const darknetSources =
-    sources?.filter(
-      (s) => s.type === "DARKNET" && s.darknet
-    ) || [];
+  const darknetSources: DarknetSource[] =
+    sources?.filter(isDarknetSource) ?? [];
 
-  const filteredSources = darknetSources.filter(
+  const filteredSources: DarknetSource[] = darknetSources.filter(
     (source) =>
       source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||

@@ -1,11 +1,20 @@
-import { Control, UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
+import {
+  Control,
+  UseFormRegister,
+  FieldErrors,
+  UseFormWatch,
+} from "react-hook-form";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/business";
 import SelectProxy from "./SelectProxy";
 import { Proxy } from "@/lib/generated/prisma";
-import { SourceCreateSchema, CrawlerEngineEnum } from "@/app/api/_utils/zod";
+import {
+  SourceCreateSchema,
+  CrawlerEngineEnum,
+  DarknetSourceCreateSchema,
+} from "@/app/api/_utils/zod";
 import { Controller } from "react-hook-form";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { SelectItem } from "@/components/ui/select";
@@ -26,7 +35,12 @@ export const DarknetFields = ({
   proxies,
   watch,
 }: DarknetFieldsProps) => {
-  const crawlerEngine = watch("darknet.crawlerEngine") as z.infer<typeof CrawlerEngineEnum> | undefined;
+  const darknetErrors = errors as FieldErrors<
+    z.infer<typeof DarknetSourceCreateSchema>
+  >;
+  const crawlerEngine = watch("darknet.crawlerEngine") as
+    | z.infer<typeof CrawlerEngineEnum>
+    | undefined;
   return (
     <>
       <div className="grid gap-3">
@@ -36,7 +50,9 @@ export const DarknetFields = ({
           placeholder="https://xxxxxxxxxxxxxxxx.onion"
           {...register("darknet.url")}
         />
-        <ErrorMessage>{errors.darknet?.url?.message}</ErrorMessage>
+        <ErrorMessage>
+          {darknetErrors.darknet?.url?.message?.toString()}
+        </ErrorMessage>
       </div>
       <div className="grid gap-3">
         <Label htmlFor="darknet.crawlerEngine">Crawler Engine</Label>
@@ -57,25 +73,31 @@ export const DarknetFields = ({
             </ControlledSelect>
           )}
         />
-        <ErrorMessage>{errors.darknet?.crawlerEngine?.message}</ErrorMessage>
+        <ErrorMessage>
+          {darknetErrors.darknet?.crawlerEngine?.message?.toString()}
+        </ErrorMessage>
       </div>
       {crawlerEngine === "CUSTOM" && (
         <div className="grid gap-3">
-          <Label htmlFor="darknet.crawlerConfig">Custom Crawler Config (JSON)</Label>
+          <Label htmlFor="darknet.crawlerConfig">
+            Custom Crawler Config (JSON)
+          </Label>
           <Textarea
             id="darknet.crawlerConfig"
             placeholder={'{ "key": "value" }'}
             rows={5}
             {...register("darknet.crawlerConfig")}
           />
-          <ErrorMessage>{errors.darknet?.crawlerConfig?.message}</ErrorMessage>
+          <ErrorMessage>
+            {darknetErrors.darknet?.crawlerConfig?.message?.toString()}
+          </ErrorMessage>
         </div>
       )}
       <SelectProxy
         control={control}
         proxies={proxies}
         name="darknet.proxyId"
-        error={errors.darknet?.proxyId?.message}
+        error={darknetErrors.darknet?.proxyId?.message?.toString()}
         required={true}
       />
     </>

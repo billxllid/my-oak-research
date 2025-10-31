@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { Source, DarknetSourceConfig, Proxy } from "@/lib/generated/prisma";
+import { DarknetSource as DarknetSourceBase } from "@/lib/types";
 import {
   DataTable,
   DataTableColumn,
@@ -12,14 +13,14 @@ import {
 import SourceDeleteAlert from "./SourceDeleteAlert";
 import SourceDialog from "./SourceDialog";
 
+type DarknetSource = DarknetSourceBase & {
+  darknet: DarknetSourceConfig & { proxy?: Proxy | null };
+};
+
 interface Props {
-  sources: (Source & { darknet: DarknetSourceConfig & { proxy: Proxy } })[];
+  sources: DarknetSource[];
   proxies: Proxy[];
 }
-
-type DarknetSource = Source & {
-  darknet: DarknetSourceConfig & { proxy: Proxy };
-};
 
 const DarknetSources = ({ sources, proxies }: Props) => {
   const [editingSource, setEditingSource] = useState<DarknetSource | undefined>();
@@ -60,7 +61,7 @@ const DarknetSources = ({ sources, proxies }: Props) => {
       key: "proxy",
       label: "Proxy",
       render: (source) =>
-        source.darknet.proxyId ? source.darknet.proxy.name : "None",
+        source.darknet.proxyId ? source.darknet.proxy?.name ?? "—" : "None",
     },
   ];
 
