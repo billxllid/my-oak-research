@@ -1,6 +1,6 @@
 import React from "react";
-import NewsCard from "@/components/NewsCard";
-import { NewsCardProps } from "@/components/NewsCard";
+import { NewsCard } from "@/components/business";
+import type { NewsCardProps } from "@/components/business/NewsCard";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";

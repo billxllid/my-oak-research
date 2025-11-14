@@ -7,11 +7,7 @@ interface ReportTemplateCardProps {
   description: string;
 }
 
-const ReportTemplateCard = ({
-  id,
-  name,
-  description,
-}: ReportTemplateCardProps) => {
+const ReportTemplateCard = ({ name, description }: ReportTemplateCardProps) => {
   return (
     <Card>
       <CardContent>

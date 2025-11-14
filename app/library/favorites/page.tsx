@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import NewsCard from "@/components/NewsCard";
-import { NewsCardProps } from "@/components/NewsCard";
-import NewsDetailCard from "@/components/NewsDetailCard";
+import { NewsCard, NewsDetailCard } from "@/components/business";
+import type { NewsCardProps } from "@/components/business/NewsCard";
 import { Input } from "@/components/ui/input";
 import { Search, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -12,6 +12,7 @@ function jsonOrNull(value: unknown) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
+    const includeRelations = searchParams.get("includeRelations") === "true";
     const parsed = SourceQuerySchema.safeParse(
       Object.fromEntries(searchParams)
     );
@@ -28,6 +29,17 @@ export async function GET(req: Request) {
     if (type) where.type = type;
     if (active) where.active = active === "true";
 
+    const include = includeRelations
+      ? {
+          web: true,
+          darknet: { include: { proxy: true } },
+          search: true,
+          social: true,
+          proxy: true,
+          credential: true,
+        }
+      : undefined;
+
     const [total, items] = await Promise.all([
       prisma.source.count({ where }),
       prisma.source.findMany({
@@ -35,14 +47,7 @@ export async function GET(req: Request) {
         orderBy: { updatedAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        include: {
-          web: true,
-          darknet: { include: { proxy: true } },
-          search: true,
-          social: true,
-          proxy: true,
-          credential: true,
-        },
+        include,
       }),
     ]);
 

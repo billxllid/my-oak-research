@@ -131,7 +131,8 @@ function parseJson(val: unknown) {
     try {
       const parse = JSON.parse(val);
       return parse;
-    } catch (error) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_unused) {
       return val;
     }
   }
@@ -142,6 +143,7 @@ export const WebConfigInput = z.object({
   url: z.url(),
   headers: z.preprocess((val) => parseJson(val), z.record(z.string(), z.string()).optional().nullable()),
   crawlerEngine: CrawlerEngineEnum.optional().default("FETCH"),
+  crawlerConfig: z.preprocess((val) => parseJson(val), z.any().optional().nullable()),
   render: z.boolean().optional().default(false),
   parseRules: z.preprocess((val) => parseJson(val), z.record(z.string(), z.any()).optional().nullable()),
   robotsRespect: z.boolean().optional().default(true),
@@ -150,22 +152,13 @@ export const WebConfigInput = z.object({
 
 export const DarknetConfigInput = z.object({
   url: z.string().min(1), // .onion 也可能不是严格的 url()，放宽
-  headers: z.preprocess((val) => {
-    if (typeof val === "string") {
-      return JSON.parse(val);
-    }
-    return val;
-  }, z.record(z.string(), z.string()).optional().nullable()),
+  headers: z.preprocess((val) => parseJson(val), z.record(z.string(), z.string()).optional().nullable()),
   crawlerEngine: CrawlerEngineEnum.optional().default("FETCH"),
+  crawlerConfig: z.preprocess((val) => parseJson(val), z.any().optional().nullable()),
   // Darknet 通常强制使用代理（TOR/SOCKS5）
    proxyId: cuid, // 改为必需
   render: z.boolean().optional().default(false),
-  parseRules: z.preprocess((val) => {
-    if (typeof val === "string") {
-      return JSON.parse(val);
-    }
-    return val;
-  }, z.record(z.string(), z.any()).optional().nullable()),
+  parseRules: z.preprocess((val) => parseJson(val), z.record(z.string(), z.any()).optional().nullable()),
 });
 
 export const SearchEngineConfigInput = z.object({
@@ -174,7 +167,8 @@ export const SearchEngineConfigInput = z.object({
   region: z.string().optional().nullable(),
   lang: LangEnum,
   apiEndpoint: z.url().optional().nullable(),
-  options: z.record(z.string(), z.any()).optional().nullable(),
+  options: z.preprocess((val) => parseJson(val), z.record(z.string(), z.any()).optional().nullable()),
+  customConfig: z.preprocess((val) => parseJson(val), z.any().optional().nullable()),
   credentialId: cuidOpt,
 });
 
@@ -309,3 +303,79 @@ export const ProxyQuerySchema = z.object({
 });
 
 export type ProxyQuery = z.infer<typeof ProxyQuerySchema>;
+
+export const QueryFrequencyEnum = z.enum([
+  "MANUAL",
+  "HOURLY",
+  "DAILY",
+  "WEEKLY",
+  "MONTHLY",
+  "CRONTAB",
+]);
+
+
+export const QueryCreateSchema = z.object({
+  name: z.string().min(1, "Name is required").max(64),
+  description: z
+    .string()
+    .max(500, "Description must be less than 500 characters")
+    .optional()
+    .nullable(),
+  frequency: QueryFrequencyEnum.optional().default("MANUAL"),
+  cronSchedule: z.string().optional().nullable(),
+  enabled: z.boolean().optional().default(true),
+  keywordIds: z.preprocess(
+    (val) => {
+      if (Array.isArray(val)) {
+        return val.map((item) => (typeof item === "object" && "id" in item ? item.id : item));
+      }
+      return val;
+    },
+    z.array(z.string().cuid()).optional().default([])
+  ),
+  sourceIds: z.preprocess(
+    (val) => {
+      if (Array.isArray(val)) {
+        return val.map((item) => (typeof item === "object" && "id" in item ? item.id : item));
+      }
+      return val;
+    },
+    z.array(z.string().cuid()).optional().default([])
+  ),
+  rules: z.preprocess((val) => parseJson(val), z.any().optional().nullable()),
+}).superRefine((data, ctx) => {
+  if (data.frequency === "CRONTAB" && !data.cronSchedule) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["cronSchedule"],
+      message: "Cron schedule is required when frequency is CRONTAB",
+    });
+  }
+  if (data.frequency !== "CRONTAB" && data.cronSchedule) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["cronSchedule"],
+      message: "Cron schedule should not be set unless frequency is CRONTAB",
+    });
+  }
+});
+
+export const QueryUpdateSchema = QueryCreateSchema.partial().superRefine((data, ctx) => {
+  // Conditional validation for updates: if frequency is set to CRONTAB, cronSchedule must be present
+  if (data.frequency === "CRONTAB" && !data.cronSchedule) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["cronSchedule"],
+      message: "Cron schedule is required when frequency is CRONTAB",
+    });
+  }
+  // If frequency is explicitly set to something other than CRONTAB, cronSchedule should be null/undefined
+  if (data.frequency && data.frequency !== "CRONTAB" && data.cronSchedule) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["cronSchedule"],
+      message: "Cron schedule should not be set unless frequency is CRONTAB",
+    });
+  }
+});
+

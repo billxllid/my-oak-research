@@ -1,15 +1,15 @@
 "use client";
 
-import { SettingEditDialog } from "@/components/SettingEditDialog";
+import { SettingEditDialog } from "@/components/layout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Proxy, ProxyType } from "@/lib/generated/prisma";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { ProxyCreateSchema } from "@/app/api/_utils/zod";
-import ErrorMessage from "@/components/ErrorMessage";
+import { ErrorMessage } from "@/components/business";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ControlledSelect } from "@/components/ui/controlled-select";
@@ -18,15 +18,26 @@ import { SelectItem } from "@/components/ui/select";
 interface Props {
   triggerButton: React.ReactNode;
   currentProxy?: Proxy;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const EditProxySettingDialog = ({ triggerButton, currentProxy }: Props) => {
+const EditProxySettingDialog = ({
+  triggerButton,
+  currentProxy,
+  open: controlledOpen,
+  onOpenChange,
+}: Props) => {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const handleOpenChange = onOpenChange ?? setUncontrolledOpen;
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(ProxyCreateSchema),
@@ -36,43 +47,56 @@ const EditProxySettingDialog = ({ triggerButton, currentProxy }: Props) => {
       url: currentProxy?.url ?? "",
     },
   });
+
+  const handleClose = () => handleOpenChange(false);
+
+  useEffect(() => {
+    reset({
+      name: currentProxy?.name ?? "",
+      type: currentProxy?.type ?? "HTTP",
+      url: currentProxy?.url ?? "",
+    });
+  }, [currentProxy, reset]);
   const onSubmit = async (data: z.infer<typeof ProxyCreateSchema>) => {
-    console.log(data);
-    const endpoint = currentProxy
-      ? `/api/follow/proxy/${currentProxy.id}`
-      : "/api/follow/proxy";
-    const method = currentProxy ? "PATCH" : "POST";
-    const body = JSON.stringify(data);
-    await fetch(endpoint, { method, body })
-      .then(async (res) => {
-        if (res.ok) {
-          toast.success(
-            currentProxy
-              ? "Proxy setting updated successfully"
-              : "Proxy setting added successfully"
-          );
-          setOpen(false);
-          setTimeout(() => {
-            router.refresh();
-          }, 200);
-        }
-        console.log(res);
-      })
-      .catch((err) => {
-        toast.error(
-          currentProxy
-            ? "Failed to update proxy setting"
-            : "Failed to add proxy setting"
-        );
-        console.log(err);
-      });
+    setIsSubmitting(true);
+    try {
+      const endpoint = currentProxy
+        ? `/api/follow/proxy/${currentProxy.id}`
+        : "/api/follow/proxy";
+      const method = currentProxy ? "PATCH" : "POST";
+      const body = JSON.stringify(data);
+      const res = await fetch(endpoint, { method, body });
+
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
+      toast.success(
+        currentProxy
+          ? "Proxy setting updated successfully"
+          : "Proxy setting added successfully"
+      );
+      handleClose();
+      setTimeout(() => {
+        router.refresh();
+      }, 200);
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        currentProxy
+          ? "Failed to update proxy setting"
+          : "Failed to add proxy setting"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <SettingEditDialog
       props={{
         open,
-        onOpenChange: setOpen,
+        onOpenChange: handleOpenChange,
       }}
       title={currentProxy ? "Update Proxy Setting" : "Add Proxy Setting"}
       description={
@@ -81,7 +105,15 @@ const EditProxySettingDialog = ({ triggerButton, currentProxy }: Props) => {
           : "Add a new proxy setting to your list."
       }
       triggerButton={triggerButton}
-      buttonText={currentProxy ? "Update" : "Add"}
+      buttonText={
+        isSubmitting
+          ? currentProxy
+            ? "Updating..."
+            : "Adding..."
+          : currentProxy
+          ? "Update"
+          : "Add"
+      }
       onSubmit={handleSubmit(onSubmit)}
     >
       <div className="grid gap-4">

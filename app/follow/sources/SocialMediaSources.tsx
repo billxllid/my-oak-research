@@ -1,77 +1,106 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { PencilIcon, TrashIcon } from "lucide-react";
+import { SocialMediaSourceConfig, Source, Proxy } from "@/lib/generated/prisma";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import SocialMediaSourceDialog from "./SocialMediaSourceDialog";
-import { SocialConfigByPlatform } from "@/app/api/_utils/zod";
-import { SocialMediaSourceConfig, Source } from "@/lib/generated/prisma";
-import { z } from "zod";
-import { Proxy } from "@/lib/generated/prisma";
+  DataTable,
+  DataTableColumn,
+  DataTableAction,
+} from "@/components/common";
+import SourceDialog from "./SourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
-import { PencilIcon } from "lucide-react";
-import { TrashIcon } from "lucide-react";
 
 interface Props {
-  sources: (Source & { social: SocialMediaSourceConfig } & { proxy: Proxy })[];
+  sources: (Source & { social: SocialMediaSourceConfig } & {
+    proxy?: Proxy | null;
+  })[];
   proxies: Proxy[];
 }
 
+type SocialMediaSource = Source & {
+  social: SocialMediaSourceConfig;
+  proxy?: Proxy | null;
+};
+
 const SocialMediaSources = ({ sources, proxies }: Props) => {
+  const [editingSource, setEditingSource] = useState<
+    SocialMediaSource | undefined
+  >();
+
+  const handleEdit = (source: SocialMediaSource) => {
+    setEditingSource(source);
+  };
+
+  const handleCloseDialog = () => {
+    setEditingSource(undefined);
+  };
+
+  const columns: DataTableColumn<SocialMediaSource>[] = [
+    {
+      key: "name",
+      label: "Name",
+      render: (source) => source.name,
+    },
+    {
+      key: "description",
+      label: "Description",
+      render: (source) => source.description,
+    },
+    {
+      key: "platform",
+      label: "Type",
+      render: (source) => source.social.platform,
+    },
+    {
+      key: "proxy",
+      label: "Proxy",
+      render: (source) => source.proxy?.name || "None",
+    },
+  ];
+
+  const actions: DataTableAction<SocialMediaSource>[] = [
+    {
+      type: "edit",
+      render: (source) => (
+        <Button size="sm" variant="outline" onClick={() => handleEdit(source)}>
+          <PencilIcon className="size-3" />
+        </Button>
+      ),
+    },
+    {
+      type: "delete",
+      render: (source) => (
+        <SourceDeleteAlert
+          source={source}
+          queryKeyType="SOCIAL_MEDIA"
+          triggerButton={
+            <Button size="sm" variant="outline">
+              <TrashIcon className="size-3" />
+            </Button>
+          }
+        />
+      ),
+    },
+  ];
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>ID</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Proxy</TableHead>
-          <TableHead>Action</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {sources.map((source, index) => (
-          <TableRow key={index}>
-            <TableCell>{index + 1}</TableCell>
-            <TableCell>{source.name}</TableCell>
-            <TableCell>{source.description}</TableCell>
-            <TableCell>{source.social.platform}</TableCell>
-            <TableCell>{source.proxy?.name}</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <SocialMediaSourceDialog
-                  proxies={proxies}
-                  source={
-                    source as Source & {
-                      social: z.infer<typeof SocialConfigByPlatform>;
-                    } & { proxy: Proxy }
-                  }
-                  triggerButton={
-                    <Button size="sm" variant="outline">
-                      <PencilIcon className="size-3" />
-                    </Button>
-                  }
-                />
-                <SourceDeleteAlert
-                  source={source}
-                  queryKeyType="SOCIAL_MEDIA"
-                  triggerButton={
-                    <Button size="sm" variant="outline">
-                      <TrashIcon className="size-3" />
-                    </Button>
-                  }
-                />
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <>
+      <SourceDialog
+        sourceType="SOCIAL_MEDIA"
+        source={editingSource}
+        proxies={proxies}
+        open={!!editingSource}
+        onOpenChange={(open) => !open && handleCloseDialog()}
+      />
+      <DataTable
+        data={sources as SocialMediaSource[]}
+        columns={columns}
+        actions={actions}
+        emptyMessage="No social media sources found. Add your first social media source to get started."
+      />
+    </>
   );
 };
 

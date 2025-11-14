@@ -1,128 +1,177 @@
-import React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, TrashIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { PencilIcon, TrashIcon, PlusIcon, Search } from "lucide-react";
 import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import { PlusIcon } from "lucide-react";
-import { Source, Proxy } from "@/lib/generated/prisma";
-import { SearchEngineSourceConfig } from "@/lib/generated/prisma";
-import SearchEngineSourceDialog from "./SearchEngineSourceDialog";
+  SettingCard,
+  DataTable,
+  DataTableColumn,
+  DataTableAction,
+} from "@/components/common";
+import SourceDialog from "./SourceDialog";
 import SourceDeleteAlert from "./SourceDeleteAlert";
+import { useFollow } from "@/hooks/useFollow";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SearchEngineSource, SourceWithRelations } from "@/lib/types";
 
-interface Props {
-  sources: (Source & { search: SearchEngineSourceConfig } & { proxy: Proxy })[];
-  proxies: Proxy[];
-}
+const isSearchEngineSource = (
+  source: SourceWithRelations
+): source is SearchEngineSource =>
+  source.type === "SEARCH_ENGINE" &&
+  "search" in source &&
+  Boolean(source.search);
 
-const SearchEngineSettingCard = ({ sources, proxies }: Props) => {
-  // const searchEngines: SearchEngine[] = [
-  //   {
-  //     id: "1",
-  //     label: "Google",
-  //     desc: "Google is a search engine that indexes the web.",
-  //     url: "https://www.google.com",
-  //   },
-  // ];
+const SearchEngineSettingCard = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [editingSource, setEditingSource] = useState<
+    SearchEngineSource | undefined
+  >(undefined);
+
+  const { sources, proxies, sourcesQuery } = useFollow();
+  const { isLoading, error } = sourcesQuery;
+
+  const handleEdit = (source: SearchEngineSource) => {
+    setEditingSource(source);
+    setDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingSource(undefined);
+    setDialogOpen(true);
+  };
+
+  if (error) {
+    return (
+      <SettingCard
+        title="Manage Search Engines"
+        description="Error loading search engines. Please try again."
+        count={0}
+        countLabel="search engines"
+      />
+    );
+  }
+
+  const searchEngineSources = sources?.filter(isSearchEngineSource) ?? [];
+
+  const filteredSources = searchEngineSources.filter(
+    (source) =>
+      source.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      source.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      source.search?.query?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const columns: DataTableColumn<SearchEngineSource>[] = [
+    {
+      key: "name",
+      label: "Name",
+      render: (source) => source.name,
+    },
+    {
+      key: "description",
+      label: "Description",
+      className: "max-w-xs",
+      render: (source) => (
+        <div className="whitespace-normal">{source.description}</div>
+      ),
+    },
+    {
+      key: "query",
+      label: "Query",
+      className: "max-w-xs",
+      render: (source) => (
+        <span className="text-sm break-all whitespace-normal">
+          {source.search.query}
+        </span>
+      ),
+    },
+    {
+      key: "proxy",
+      label: "Proxy",
+      render: (source) => source.proxy?.name || "None",
+    },
+  ];
+
+  const actions: DataTableAction<SearchEngineSource>[] = [
+    {
+      type: "edit",
+      render: (source) => (
+        <Button size="sm" variant="outline" onClick={() => handleEdit(source)}>
+          <PencilIcon className="size-3" />
+        </Button>
+      ),
+    },
+    {
+      type: "delete",
+      render: (source) => (
+        <SourceDeleteAlert
+          source={source}
+          queryKeyType="SEARCH_ENGINE"
+          triggerButton={
+            <Button size="sm" variant="outline">
+              <TrashIcon className="size-3" />
+            </Button>
+          }
+        />
+      ),
+    },
+  ];
+
+  const filterComponent = (
+    <div className="flex items-center gap-4">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search search engines..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <Button onClick={handleAdd}>
+        <PlusIcon className="size-4" />
+        Add Search Engine
+      </Button>
+    </div>
+  );
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Manage Search Engines</CardTitle>
-        <CardDescription>You can manage search engines here.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Search search engines..."
-              className="pl-9 bg-muted border-none"
-              icon={<Search size={16} />}
-            />
-          </div>
-          <SearchEngineSourceDialog
-            triggerButton={
-              <Button>
-                <PlusIcon />
-                Add Search Engine
-              </Button>
-            }
-            proxies={proxies}
-          />
+    <SettingCard
+      title="Manage Search Engines"
+      description="You can manage search engines here."
+      count={filteredSources.length}
+      countLabel="search engines"
+      filterComponent={filterComponent}
+    >
+      <SourceDialog
+        sourceType="SEARCH_ENGINE"
+        source={editingSource}
+        proxies={proxies}
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditingSource(undefined);
+          }
+        }}
+      />
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Domain</TableHead>
-              <TableHead>Proxy</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sources.map(
-              (
-                source: Source & { search: SearchEngineSourceConfig } & {
-                  proxy: Proxy;
-                },
-                index
-              ) => (
-                <TableRow key={source.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{source.name}</TableCell>
-                  <TableCell className="max-w-xs whitespace-normal">
-                    {source.description}
-                  </TableCell>
-                  <TableCell className="max-w-xs break-all whitespace-normal">
-                    <span className="text-sm">{source.search.query}</span>
-                  </TableCell>
-                  <TableCell>
-                    {source.proxy ? source.proxy?.name : ""}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <SearchEngineSourceDialog
-                        triggerButton={
-                          <Button size="sm" variant="outline">
-                            <PencilIcon className="size-3" />
-                          </Button>
-                        }
-                        proxies={proxies}
-                        source={source}
-                      />
-                      <SourceDeleteAlert
-                        source={source}
-                        queryKeyType="SEARCH_ENGINE"
-                        triggerButton={
-                          <Button size="sm" variant="outline">
-                            <TrashIcon className="size-3" />
-                          </Button>
-                        }
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+      ) : (
+        <DataTable
+          data={filteredSources}
+          columns={columns}
+          actions={actions}
+          emptyMessage="No search engines found. Add your first search engine to get started."
+        />
+      )}
+    </SettingCard>
   );
 };
 

@@ -1,9 +1,7 @@
 "use client";
 
 import { Category } from "@/lib/generated/prisma";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { SettingDeleteAlertDialog } from "@/components/SettingDeleteAlertDialog";
+import { DeleteAlert } from "@/components/common";
 
 const DeleteCategoryDialog = ({
   category,
@@ -12,38 +10,17 @@ const DeleteCategoryDialog = ({
   category: Category;
   triggerButton: React.ReactNode;
 }) => {
-  const router = useRouter();
-  const handleDelete = async (category: Category) => {
-    await fetch(`/api/follow/categories/${category.id}`, {
-      method: "DELETE",
-    })
-      .then((res) => {
-        const handleResponse = () => {
-          if (res.ok) return toast.success("Category deleted successfully");
-          if (res.status === 409)
-            return toast.error(
-              "Category is in use by keywords; migrate or remove those first"
-            );
-          return toast.error("Failed to delete category");
-        };
-
-        handleResponse();
-
-        setTimeout(() => {
-          router.refresh();
-        }, 200);
-      })
-      .catch((err) => {
-        toast.error("Failed to delete category");
-        console.error(err);
-      });
-  };
   return (
-    <SettingDeleteAlertDialog
-      triggerButton={triggerButton}
+    <DeleteAlert
+      item={category}
+      itemName="name"
       title="Delete Category"
-      description={`Are you sure you want to delete ${category.name} category?`}
-      onDelete={() => handleDelete(category)}
+      description={(item) =>
+        `Are you sure you want to delete "${item.name}" category? This action cannot be undone.`
+      }
+      queryKeys={[["categories"], ["keywords"]]}
+      deleteEndpoint={(id) => `/api/follow/categories/${id}`}
+      triggerButton={triggerButton}
     />
   );
 };

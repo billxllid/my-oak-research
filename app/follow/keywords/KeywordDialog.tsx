@@ -6,17 +6,16 @@ import { ControlledSelect } from "@/components/ui/controlled-select";
 import { Controller } from "react-hook-form";
 import { Switch } from "@/components/ui/switch";
 import { KeywordUpdateSchema, KeywordCreateSchema } from "@/app/api/_utils/zod";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import ErrorMessage from "@/components/ErrorMessage";
-import { SettingEditDialog } from "@/components/SettingEditDialog";
+import { ErrorMessage } from "@/components/business";
+import { SettingEditDialog } from "@/components/layout";
+import { useKeywordMutation } from "@/hooks/useKeywordMutation";
 
 type KeywordWithCategory = Prisma.KeywordGetPayload<{
   include: { category: true };
@@ -31,8 +30,17 @@ const EditKeywordDialog = ({
   categories: Category[];
   triggerButton: React.ReactNode;
 }) => {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  const mutation = useKeywordMutation({
+    keywordId: keyword?.id,
+    onSuccess: () => {
+      setOpen(false);
+      if (!keyword) {
+        reset();
+      }
+    },
+  });
 
   const {
     register,
@@ -40,6 +48,7 @@ const EditKeywordDialog = ({
     control,
     watch,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(keyword ? KeywordUpdateSchema : KeywordCreateSchema),
     defaultValues: {
@@ -50,47 +59,31 @@ const EditKeywordDialog = ({
       synonyms: keyword?.synonyms || [],
       excludes: keyword?.excludes || [],
       enableAiExpand: keyword?.enableAiExpand || false,
+      lang: (keyword?.lang as "auto" | "zh" | "en" | "ja") || "auto",
+      active: keyword?.active ?? true,
     },
   });
 
   const enableAiExpand = watch("enableAiExpand");
+
   const onSubmit = async (
     data: z.infer<typeof KeywordUpdateSchema | typeof KeywordCreateSchema>
   ) => {
-    const endpoint = keyword
-      ? `/api/follow/keywords/${keyword.id}`
-      : "/api/follow/keywords";
-    const method = keyword ? "PATCH" : "POST";
-    const body = keyword ? JSON.stringify(data) : JSON.stringify(data);
-    await fetch(endpoint, { method, body })
-      .then((res) => {
-        const handleResponse = () => {
-          if (res.ok)
-            return toast.success(
-              keyword
-                ? "Keyword updated successfully"
-                : "Keyword added successfully"
-            );
-          return toast.error(
-            keyword ? "Failed to update keyword" : "Failed to add keyword"
-          );
-        };
-        setOpen(false);
-        handleResponse();
-        setTimeout(() => {
-          router.refresh();
-        }, 200);
-      })
-      .catch((err) => {
-        toast.error("Failed to update keyword");
-        console.error(err);
-      });
+    mutation.mutate(data);
   };
 
   return (
     <SettingEditDialog
       props={{ open, onOpenChange: setOpen }}
-      buttonText={keyword ? "Edit" : "Add"}
+      buttonText={
+        mutation.isPending
+          ? keyword
+            ? "Updating..."
+            : "Adding..."
+          : keyword
+          ? "Update"
+          : "Add"
+      }
       title={keyword ? "Edit Keyword" : "Add Keyword"}
       description={
         keyword

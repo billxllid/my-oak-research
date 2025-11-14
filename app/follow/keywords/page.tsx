@@ -1,25 +1,14 @@
+"use client";
+
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import KeywordSettinggCard from "./KeywordSetting";
+import KeywordSettingCard from "./KeywordSetting";
 import CategorySettingCard from "./CategorySetting";
-import { Category, Prisma } from "@/lib/generated/prisma";
-import prisma from "@/lib/prisma";
+import { useFollow } from "@/hooks/useFollow";
 
-type KeywordWithCategory = Prisma.KeywordGetPayload<{
-  include: { category: true };
-}>;
+const KeywordsPage = () => {
+  const { categories } = useFollow();
 
-const KeywordsPage = async () => {
-  const categories: Category[] = await prisma.category.findMany({
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
-  const keywords: KeywordWithCategory[] = await prisma.keyword.findMany({
-    include: {
-      category: true,
-    },
-  });
   return (
     <Tabs defaultValue="keywords" className="space-y-2">
       <TabsList>
@@ -27,10 +16,10 @@ const KeywordsPage = async () => {
         <TabsTrigger value="categories">Categories</TabsTrigger>
       </TabsList>
       <TabsContent value="keywords">
-        <KeywordSettinggCard keywords={keywords} categories={categories} />
+        <KeywordSettingCard categories={categories} />
       </TabsContent>
       <TabsContent value="categories">
-        <CategorySettingCard categories={categories} />
+        <CategorySettingCard />
       </TabsContent>
     </Tabs>
   );

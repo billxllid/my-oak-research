@@ -110,8 +110,12 @@ export async function PATCH(
       if (exists.type === "DARKNET" && parsed.data.darknet) {
         const darknetData = parsed.data.darknet;
         // 确保 proxyId 不被清空
-        if (darknetData.proxyId === null)
-          throw new Error("DARKNET.proxyId is required");
+        if (darknetData.proxyId === null) {
+          return badRequest("DARKNET.proxyId is required", {
+            message: "Validation failed",
+            details: "Proxy ID is required for DARKNET source type.",
+          });
+        }
 
         const updateData: ConfigUpdateData = {};
         if (darknetData.url !== undefined) updateData.url = darknetData.url;

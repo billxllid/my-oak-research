@@ -1,3 +1,5 @@
+"use client";
+
 import { Category } from "@/lib/generated/prisma";
 import {
   Table,
