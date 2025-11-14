@@ -17,6 +17,7 @@ export async function GET(
   });
   await sub.connect();
 
+  let cleanUp: () => Promise<void> | undefined;
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
@@ -44,26 +45,25 @@ export async function GET(
       });
 
       // Close on client disconnect
-      const cleanUp = async () => {
-        if (!streamOpen) return;
+      let closed = false;
+      cleanUp = async () => {
+        if (closed) return;
+        closed = true;
         streamOpen = false;
         clearInterval(heartbeat);
+        await sub.unsubscribe(`task:${runId}`).catch(() => {});
+        await sub.quit().catch(() => {});
         try {
-          await sub.unsubscribe(`task:${runId}`);
-        } finally {
-          await sub.quit();
+          controller.close();
+        } catch {
+          // already closed
         }
-        controller.close();
       };
 
-      req.signal.addEventListener("abort", cleanUp);
+      req.signal?.addEventListener?.("abort", cleanUp);
     },
     async cancel() {
-      try {
-        await sub.quit();
-      } catch {
-        // ignore
-      }
+      await cleanUp?.();
     },
   });
 
