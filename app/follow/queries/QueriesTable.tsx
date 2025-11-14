@@ -20,6 +20,10 @@ interface Props {
 }
 
 const QueriesTable = ({ queries, keywords, sources }: Props) => {
+  const [progressMap, setProgressMap] = useState<
+    Record<string, { progress: number; status?: string }>
+  >({});
+  const [runningMap, setRunningMap] = useState<Record<string, boolean>>({});
   const [editingQuery, setEditingQuery] = useState<
     QueryWithAggregations | undefined
   >();
@@ -54,11 +58,75 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
     };
   }, []);
 
+  const ProgressRing = ({ percent }: { percent: number }) => {
+    const normalized = Math.min(100, Math.max(0, Math.round(percent)));
+    const radius = 16;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (normalized / 100) * circumference;
+    return (
+      <svg
+        className="h-10 w-10"
+        viewBox="0 0 40 40"
+        role="img"
+        aria-label={`progress ${normalized}%`}
+      >
+        <circle
+          cx="20"
+          cy="20"
+          r={radius}
+          className="stroke-muted-foreground/30"
+          strokeWidth="3"
+          fill="none"
+        />
+        <circle
+          cx="20"
+          cy="20"
+          r={radius}
+          className="stroke-primary"
+          strokeWidth="3"
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          fill="none"
+        />
+        <text
+          x="50%"
+          y="50%"
+          dominantBaseline="middle"
+          textAnchor="middle"
+          className="text-[10px] font-semibold text-muted-foreground"
+        >
+          {normalized}%
+        </text>
+      </svg>
+    );
+  };
+
   const columns: DataTableColumn<QueryWithAggregations>[] = [
     {
       key: "name",
       label: "Name",
       render: (query) => query.name,
+    },
+    {
+      key: "progress",
+      label: "Progress",
+      className: "w-32",
+      render: (query) => {
+        const runtime = progressMap[query.id];
+        const latestRun = query.latestRun;
+        const percent = runtime ? runtime.progress : latestRun?.progress ?? 0;
+        const statusLabel =
+          runtime?.status?.toLowerCase() ||
+          latestRun?.status?.toLowerCase?.() ||
+          "idle";
+        return (
+          <div className="flex flex-col items-center gap-1 text-center text-[11px] text-muted-foreground">
+            <ProgressRing percent={percent} />
+            <span className="uppercase tracking-[0.08em]">{statusLabel}</span>
+          </div>
+        );
+      },
     },
     {
       key: "description",
@@ -97,6 +165,9 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
         <Button
           size="sm"
           variant="default"
+          disabled={
+            runningMap[query.id] || query.latestRun?.status === "RUNNING"
+          }
           onClick={async () => {
             try {
               const res = await fetch(`/api/follow/queries/${query.id}/run`, {
@@ -109,20 +180,42 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
               }
               const runId = json.runId as string | undefined;
               if (!runId) return;
+              setRunningMap((prev) => ({ ...prev, [query.id]: true }));
+              setProgressMap((prev) => ({
+                ...prev,
+                [query.id]: { progress: 0, status: "pending" },
+              }));
               const es = new EventSource(`/api/tasks/${runId}/stream`);
+              const closeStream = () => {
+                es.close();
+                setRunningMap((prev) => ({ ...prev, [query.id]: false }));
+              };
               es.onmessage = (ev) => {
                 try {
                   const data = JSON.parse(ev.data);
-                  // 简单输出，可替换为 toast 或 UI 进度
-                  console.log("[task-event]", data);
-                  if (data?.type === "done" || data?.type === "error") {
-                    // 简单处理：任务结束后刷新页面以获取最新数据
-                    try {
-                      location.reload();
-                    } catch {}
-                    es.close();
+                  setProgressMap((prev) => ({
+                    ...prev,
+                    [query.id]: {
+                      progress:
+                        typeof data?.progress === "number"
+                          ? data.progress
+                          : prev[query.id]?.progress ?? 0,
+                      status: data?.type,
+                    },
+                  }));
+                  if (data?.type === "done") {
+                    closeStream();
+                    location.reload();
                   }
-                } catch {}
+                  if (data?.type === "error") {
+                    closeStream();
+                  }
+                } catch {
+                  // ignore invalid payloads
+                }
+              };
+              es.onerror = () => {
+                // keep server retry
               };
             } catch (e) {
               console.error(e);
