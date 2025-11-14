@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, TrashIcon } from "lucide-react";
+import { PencilIcon, TrashIcon, PlayIcon } from "lucide-react";
 import { Keyword, Source } from "@/lib/generated/prisma";
 import { QueryWithAggregations } from "@/lib/types";
 import {
@@ -91,6 +91,48 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
   ];
 
   const actions: DataTableAction<QueryWithAggregations>[] = [
+    {
+      type: "custom",
+      render: (query) => (
+        <Button
+          size="sm"
+          variant="default"
+          onClick={async () => {
+            try {
+              const res = await fetch(`/api/follow/queries/${query.id}/run`, {
+                method: "POST",
+              });
+              const json = await res.json();
+              if (!res.ok) {
+                console.error("Run failed:", json?.error || res.statusText);
+                return;
+              }
+              const runId = json.runId as string | undefined;
+              if (!runId) return;
+              const es = new EventSource(`/api/tasks/${runId}/stream`);
+              es.onmessage = (ev) => {
+                try {
+                  const data = JSON.parse(ev.data);
+                  // 简单输出，可替换为 toast 或 UI 进度
+                  console.log("[task-event]", data);
+                  if (data?.type === "done" || data?.type === "error") {
+                    // 简单处理：任务结束后刷新页面以获取最新数据
+                    try {
+                      location.reload();
+                    } catch {}
+                    es.close();
+                  }
+                } catch {}
+              };
+            } catch (e) {
+              console.error(e);
+            }
+          }}
+        >
+          <PlayIcon className="size-3" />
+        </Button>
+      ),
+    },
     {
       type: "edit",
       render: (query) => (
