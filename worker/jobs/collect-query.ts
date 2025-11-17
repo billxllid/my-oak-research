@@ -6,6 +6,9 @@ import { publishTaskEvent } from "@/lib/queue";
 // In-process worker; in production consider running as a separate process
 export const collectWorker = createCollectWorker(async (job) => {
   const { runId, queryId } = job.data;
+  console.log(
+    `[worker] collect-query job started runId=${runId} queryId=${queryId}`
+  );
   try {
     await publishTaskEvent(runId, { type: "enqueue", message: "已入队" });
     await runFocusCollector(runId, queryId);

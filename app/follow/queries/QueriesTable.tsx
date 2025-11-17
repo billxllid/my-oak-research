@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon, PlayIcon } from "lucide-react";
+import { Progress } from "@/components/ui";
 import { Keyword, Source } from "@/lib/generated/prisma";
 import { QueryWithAggregations } from "@/lib/types";
 import {
@@ -20,6 +22,7 @@ interface Props {
 }
 
 const QueriesTable = ({ queries, keywords, sources }: Props) => {
+  const router = useRouter();
   const [progressMap, setProgressMap] = useState<
     Record<string, { progress: number; status?: string }>
   >({});
@@ -58,50 +61,6 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
     };
   }, []);
 
-  const ProgressRing = ({ percent }: { percent: number }) => {
-    const normalized = Math.min(100, Math.max(0, Math.round(percent)));
-    const radius = 16;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (normalized / 100) * circumference;
-    return (
-      <svg
-        className="h-10 w-10"
-        viewBox="0 0 40 40"
-        role="img"
-        aria-label={`progress ${normalized}%`}
-      >
-        <circle
-          cx="20"
-          cy="20"
-          r={radius}
-          className="stroke-muted-foreground/30"
-          strokeWidth="3"
-          fill="none"
-        />
-        <circle
-          cx="20"
-          cy="20"
-          r={radius}
-          className="stroke-primary"
-          strokeWidth="3"
-          strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          fill="none"
-        />
-        <text
-          x="50%"
-          y="50%"
-          dominantBaseline="middle"
-          textAnchor="middle"
-          className="text-[10px] font-semibold text-muted-foreground"
-        >
-          {normalized}%
-        </text>
-      </svg>
-    );
-  };
-
   const columns: DataTableColumn<QueryWithAggregations>[] = [
     {
       key: "name",
@@ -116,14 +75,11 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
         const runtime = progressMap[query.id];
         const latestRun = query.latestRun;
         const percent = runtime ? runtime.progress : latestRun?.progress ?? 0;
-        const statusLabel =
-          runtime?.status?.toLowerCase() ||
-          latestRun?.status?.toLowerCase?.() ||
-          "idle";
         return (
-          <div className="flex flex-col items-center gap-1 text-center text-[11px] text-muted-foreground">
-            <ProgressRing percent={percent} />
-            <span className="uppercase tracking-[0.08em]">{statusLabel}</span>
+          <div className="flex justify-center">
+            <div className="w-24">
+              <Progress value={Math.min(100, Math.max(0, percent))} />
+            </div>
           </div>
         );
       },
@@ -205,7 +161,7 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
                   }));
                   if (data?.type === "done") {
                     closeStream();
-                    location.reload();
+                    router.refresh();
                   }
                   if (data?.type === "error") {
                     closeStream();

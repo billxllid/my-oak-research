@@ -58,8 +58,6 @@ export async function GET(request: Request) {
 
     return query;
   });
-
-  console.log("Queries with counts before sending:", queriesWithCounts);
   return NextResponse.json(queriesWithCounts);
 }
 

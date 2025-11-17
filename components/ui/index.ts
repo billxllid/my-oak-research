@@ -24,6 +24,7 @@ export * from "./avatar";
 export * from "./skeleton";
 export * from "./collapsible";
 export * from "./breadcrumb";
+export * from "./progress";
 
 // 反馈组件
 export * from "./dialog";
