@@ -40,9 +40,10 @@ model Keyword {
   synonyms       String[]
   active         Boolean  @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  queries   Query[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  queries         Query[]
+  contentKeywords ContentKeyword[]
 
   @@unique([name])
 }
@@ -257,6 +258,93 @@ model Query {
 
   rules Json?
 
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  queryRuns QueryRun[]
+}
+
+// ------------------------------
+// Task/Run tracking for queries
+// ------------------------------
+
+enum TaskStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+model QueryRun {
+  id         String      @id @default(cuid())
+  queryId    String
+  query      Query       @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  status     TaskStatus  @default(PENDING)
+  progress   Int         @default(0) // 0-100
+  error      String?
+  startedAt  DateTime?
+  finishedAt DateTime?
+  meta       Json?
+  events     TaskEvent[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([queryId, createdAt])
+}
+
+model TaskEvent {
+  id        String   @id @default(cuid())
+  runId     String
+  run       QueryRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  type      String // e.g. enqueue | start | fetch | clean | summary | store | progress | done | error
+  message   String
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([runId, createdAt])
+}
+
+enum ContentType {
+  Web
+  Client
+  Darknet
+}
+
+model Content {
+  id        String           @id @default(cuid())
+  title     String
+  summary   String
+  markdown  String
+  platform  String
+  type      ContentType
+  time      DateTime
+  url       String?
+  meta      Json?
+  keywords  ContentKeyword[]
+  entities  ContentEntity?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([platform, time])
+  @@index([type, time])
+}
+
+model ContentKeyword {
+  id        String  @id @default(cuid())
+  contentId String
+  keywordId String
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  keyword   Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@unique([contentId, keywordId])
+}
+
+model ContentEntity {
+  id        String   @id @default(cuid())
+  contentId String   @unique
+  persons   String[]
+  orgs      String[]
+  locations String[]
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }

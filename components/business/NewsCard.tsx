@@ -11,6 +11,7 @@ export interface NewsCardProps {
   platform?: string;
   time?: string;
   mark?: boolean;
+  onBookmarkToggle?: () => void;
 }
 
 const NewsCard = ({
@@ -20,6 +21,7 @@ const NewsCard = ({
   platform,
   time,
   mark,
+  onBookmarkToggle,
 }: NewsCardProps) => {
   return (
     <Card>
@@ -48,12 +50,21 @@ const NewsCard = ({
                   {time}
                 </Badge>
               </div>
-              <Button variant="ghost" size="icon">
-                {mark ? (
-                  <Bookmark className="fill-red-500 text-red-500" />
-                ) : (
-                  <Bookmark />
-                )}
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={mark ? "Remove from bookmarks" : "Add to bookmarks"}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onBookmarkToggle?.();
+                }}
+              >
+                <Bookmark
+                  size={32}
+                  className={
+                    mark ? "fill-red-500 text-red-500" : "text-muted-foreground"
+                  }
+                />
               </Button>
             </div>
           </div>

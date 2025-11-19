@@ -1,28 +1,45 @@
+"use client";
+
 import React from "react";
 import { NewsDetailCard } from "@/components/business";
-
-const markdown = `
-## 摘要
-
-Excepteur efficient emerging, minim veniam anim aute carefully curated Ginza conversation exquisite perfect nostrud nisi intricate Content. Qui  international first-class nulla ut. Punctual adipisicing, essential lovely queen tempor eiusmod irure. Exclusive izakaya charming Scandinavian impeccable aute quality of life soft power pariatur Melbourne occaecat discerning. Qui wardrobe aliquip, et Porter destination Toto remarkable officia Helsinki excepteur Basset hound. Zürich sleepy perfect consectetur.
-
-## 标题1
-
-Body text for your whole article or post. We’ll put in some lorem ipsum to show how a filled-out page might look:
-
-### 标题1.2
-
-Excepteur efficient emerging, minim veniam anim aute carefully curated Ginza conversation exquisite perfect nostrud nisi intricate Content. Qui  international first-class nulla ut. Punctual adipisicing, essential lovely queen tempor eiusmod irure. Exclusive izakaya charming Scandinavian impeccable aute quality of life soft power pariatur Melbourne occaecat discerning. Qui wardrobe aliquip, et Porter destination Toto remarkable officia Helsinki excepteur Basset hound. Zürich sleepy perfect consectetur.
-
-## 标题2
-
-Excepteur efficient emerging, minim veniam anim aute carefully curated Ginza conversation exquisite perfect nostrud nisi intricate Content. Qui  international first-class nulla ut. Punctual adipisicing, essential lovely queen tempor eiusmod irure. Exclusive izakaya charming Scandinavian impeccable aute quality of life soft power pariatur Melbourne occaecat discerning. Qui wardrobe aliquip, et Porter destination Toto remarkable officia Helsinki excepteur Basset hound. Zürich sleepy perfect consectetur.
-`;
+import { useFollowContent } from "@/components/follow-content/context";
+import { useBookmarks } from "@/components/bookmarks/context";
 
 const FollowContent = () => {
+  const { selectedContent, isLoading, error } = useFollowContent();
+  const { toggleBookmark, isBookmarked } = useBookmarks();
+
+  if (error) {
+    return (
+      <div className="h-[calc(100vh-7rem)] flex items-center justify-center text-sm text-destructive">
+        {error.message ?? "Cannot load content details"}
+      </div>
+    );
+  }
+
+  if (!selectedContent) {
+    return (
+      <div className="h-[calc(100vh-7rem)] flex items-center justify-center text-sm text-muted-foreground">
+        {isLoading
+          ? "Loading content..."
+          : "Please select a record from the left content list"}
+      </div>
+    );
+  }
+
   return (
     <div className="h-[calc(100vh-7rem)]">
-      <NewsDetailCard markdown={markdown} />
+      <NewsDetailCard
+        title={selectedContent.title}
+        summary={selectedContent.summary}
+        markdown={
+          selectedContent.markdown ||
+          selectedContent.summary ||
+          "No content details"
+        }
+        bookmarked={isBookmarked(selectedContent.id)}
+        onBookmarkToggle={() => toggleBookmark(selectedContent)}
+      />
     </div>
   );
 };

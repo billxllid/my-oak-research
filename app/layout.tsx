@@ -6,6 +6,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import Headbar from "./Headbar";
 import QueryClientProvider from "./QueryClientProvider";
 import { Toaster } from "sonner";
+import { BookmarkProvider } from "@/components/bookmarks/context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,14 +34,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryClientProvider>
-          <SidebarProvider>
-            <Navbar variant="inset" />
-            <SidebarInset>
-              <Toaster richColors />
-              <Headbar />
-              <main className="flex flex-1 flex-col gap-4 p-4">{children}</main>
-            </SidebarInset>
-          </SidebarProvider>
+          <BookmarkProvider>
+            <SidebarProvider>
+              <Navbar variant="inset" />
+              <SidebarInset>
+                <Toaster richColors />
+                <Headbar />
+                <main className="flex flex-1 flex-col gap-4 p-4">
+                  {children}
+                </main>
+              </SidebarInset>
+            </SidebarProvider>
+          </BookmarkProvider>
         </QueryClientProvider>
       </body>
     </html>
