@@ -56,7 +56,7 @@ const NewsDetailCard = ({
         </p>
       </CardHeader>
       <CardContent className="px-6 overflow-y-auto">
-        <article className="prose dark:prose-invert">
+        <article className="prose dark:prose-invert max-w-none">
           <ReactMarkdown>{markdown}</ReactMarkdown>
         </article>
       </CardContent>

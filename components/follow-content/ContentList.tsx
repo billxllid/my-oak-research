@@ -26,7 +26,7 @@ export const ContentList = () => {
         )}
         {!isLoading && !error && !contents.length && (
           <div className="text-sm text-muted-foreground px-2">
-            暂无内容，尝试更换筛选条件
+            No content found. Try adjusting your filters.
           </div>
         )}
         {contents.map((content) => {
@@ -36,11 +36,10 @@ export const ContentList = () => {
             <div
               key={content.id}
               onClick={() => selectContent(content.id)}
-              className={`cursor-pointer transition-all duration-200 ${
-                isActive
+              className={`cursor-pointer transition-all duration-200 ${isActive
                   ? "rounded-2xl bg-muted shadow-xl"
                   : "hover:-translate-y-0.5"
-              }`}
+                }`}
             >
               <NewsCard
                 title={content.title}

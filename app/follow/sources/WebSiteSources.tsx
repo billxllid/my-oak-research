@@ -46,7 +46,12 @@ const WebSites = ({ sources, proxies }: Props) => {
     {
       key: "url",
       label: "URL",
-      render: (source) => source.web?.url || "-",
+      className: "max-w-[300px]",
+      render: (source) => (
+        <div className="truncate" title={source.web?.url}>
+          {source.web?.url || "-"}
+        </div>
+      ),
     },
     {
       key: "proxy",
