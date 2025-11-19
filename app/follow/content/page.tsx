@@ -3,14 +3,16 @@
 import React from "react";
 import { NewsDetailCard } from "@/components/business";
 import { useFollowContent } from "@/components/follow-content/context";
+import { useBookmarks } from "@/components/bookmarks/context";
 
 const FollowContent = () => {
   const { selectedContent, isLoading, error } = useFollowContent();
+  const { toggleBookmark, isBookmarked } = useBookmarks();
 
   if (error) {
     return (
       <div className="h-[calc(100vh-7rem)] flex items-center justify-center text-sm text-destructive">
-        {error.message ?? "无法加载内容详情"}
+        {error.message ?? "Cannot load content details"}
       </div>
     );
   }
@@ -18,7 +20,9 @@ const FollowContent = () => {
   if (!selectedContent) {
     return (
       <div className="h-[calc(100vh-7rem)] flex items-center justify-center text-sm text-muted-foreground">
-        {isLoading ? "正在加载内容..." : "请从左侧内容列表选择一条记录"}
+        {isLoading
+          ? "Loading content..."
+          : "Please select a record from the left content list"}
       </div>
     );
   }
@@ -29,8 +33,12 @@ const FollowContent = () => {
         title={selectedContent.title}
         summary={selectedContent.summary}
         markdown={
-          selectedContent.markdown || selectedContent.summary || "暂无详情内容"
+          selectedContent.markdown ||
+          selectedContent.summary ||
+          "No content details"
         }
+        bookmarked={isBookmarked(selectedContent.id)}
+        onBookmarkToggle={() => toggleBookmark(selectedContent)}
       />
     </div>
   );

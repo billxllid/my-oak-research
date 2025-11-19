@@ -3,11 +3,13 @@
 import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NewsCard } from "@/components/business";
+import { useBookmarks } from "@/components/bookmarks/context";
 import { useFollowContent } from "./context";
 
 export const ContentList = () => {
   const { contents, selectedContent, selectContent, isLoading, error } =
     useFollowContent();
+  const { toggleBookmark, isBookmarked } = useBookmarks();
 
   return (
     <ScrollArea className="h-[calc(100vh-11rem)] pr-4">
@@ -29,6 +31,7 @@ export const ContentList = () => {
         )}
         {contents.map((content) => {
           const isActive = selectedContent?.id === content.id;
+          const bookmarked = isBookmarked(content.id);
           return (
             <div
               key={content.id}
@@ -44,7 +47,8 @@ export const ContentList = () => {
                 summary={content.summary}
                 platform={content.platform}
                 time={new Date(content.time).toLocaleDateString()}
-                mark={isActive}
+                mark={bookmarked}
+                onBookmarkToggle={() => toggleBookmark(content)}
               />
             </div>
           );
