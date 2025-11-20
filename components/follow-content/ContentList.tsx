@@ -16,12 +16,12 @@ export const ContentList = () => {
       <div className="flex flex-col gap-4 overflow-visible px-1">
         {isLoading && (
           <div className="text-sm text-muted-foreground px-2">
-            正在加载内容...
+            Loading content...
           </div>
         )}
         {error && (
           <div className="text-sm text-destructive px-2">
-            {error.message ?? "无法加载内容"}
+            {error.message ?? "Cannot load content"}
           </div>
         )}
         {!isLoading && !error && !contents.length && (
@@ -36,10 +36,11 @@ export const ContentList = () => {
             <div
               key={content.id}
               onClick={() => selectContent(content.id)}
-              className={`cursor-pointer transition-all duration-200 ${isActive
+              className={`cursor-pointer transition-all duration-200 ${
+                isActive
                   ? "rounded-2xl bg-muted shadow-xl"
                   : "hover:-translate-y-0.5"
-                }`}
+              }`}
             >
               <NewsCard
                 title={content.title}
