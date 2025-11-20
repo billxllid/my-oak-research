@@ -37,9 +37,6 @@ const NewsDetailCard = ({
                 }}
               >
                 <Bookmark
-                  // 关键点：使用 "size-8" (32px)
-                  // 1. 它包含了 "size-" 字符串，能避开 Button 的强制缩小规则
-                  // 2. 它直接设置了 width: 32px; height: 32px;
                   className={cn(
                     "size-8",
                     bookmarked
@@ -56,7 +53,7 @@ const NewsDetailCard = ({
         </p>
       </CardHeader>
       <CardContent className="px-6 overflow-y-auto">
-        <article className="prose dark:prose-invert">
+        <article className="prose dark:prose-invert max-w-none">
           <ReactMarkdown>{markdown}</ReactMarkdown>
         </article>
       </CardContent>

@@ -28,7 +28,7 @@ const FollowContent = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-7rem)]">
+    <div className="h-full lg:h-[calc(100vh-7rem)]">
       <NewsDetailCard
         title={selectedContent.title}
         summary={selectedContent.summary}

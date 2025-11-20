@@ -16,17 +16,17 @@ export const ContentList = () => {
       <div className="flex flex-col gap-4 overflow-visible px-1">
         {isLoading && (
           <div className="text-sm text-muted-foreground px-2">
-            正在加载内容...
+            Loading content...
           </div>
         )}
         {error && (
           <div className="text-sm text-destructive px-2">
-            {error.message ?? "无法加载内容"}
+            {error.message ?? "Cannot load content"}
           </div>
         )}
         {!isLoading && !error && !contents.length && (
           <div className="text-sm text-muted-foreground px-2">
-            暂无内容，尝试更换筛选条件
+            No content found. Try adjusting your filters.
           </div>
         )}
         {contents.map((content) => {
