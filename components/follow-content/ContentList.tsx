@@ -4,6 +4,8 @@ import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NewsCard } from "@/components/business";
 import { useBookmarks } from "@/components/bookmarks/context";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useFollowContent } from "./context";
 
 export const ContentList = () => {
@@ -12,11 +14,42 @@ export const ContentList = () => {
   const { toggleBookmark, isBookmarked } = useBookmarks();
 
   return (
-    <ScrollArea className="h-[calc(100vh-11rem)] pr-4">
+    <ScrollArea className="h-[calc(100vh-11rem)]">
       <div className="flex flex-col gap-4 overflow-visible px-1">
         {isLoading && (
-          <div className="text-sm text-muted-foreground px-2">
-            Loading content...
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <Card
+                key={`content-skeleton-${idx}`}
+                className="rounded-2xl shadow-sm"
+              >
+                <CardContent className="px-5 py-1">
+                  <div className="flex flex-col gap-3 justify-between overflow-hidden min-h-36 w-full">
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-12/12" />
+                      <Skeleton className="h-6 w-8/12" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-3/12" />
+                        <Skeleton className="h-4 w-8/12" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-5/12" />
+                        <Skeleton className="h-4 w-5/12" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex gap-2">
+                        <Skeleton className="h-5 w-20 rounded-full" />
+                        <Skeleton className="h-5 w-20 rounded-full" />
+                      </div>
+                      <Skeleton className="h-5 w-5 rounded-full" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
         {error && (
