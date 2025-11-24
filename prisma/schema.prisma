@@ -11,7 +11,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Category {
@@ -325,6 +324,7 @@ model Content {
   entities  ContentEntity?
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
+  favorites Favorite[]
 
   @@index([platform, time])
   @@index([type, time])
@@ -347,4 +347,108 @@ model ContentEntity {
   orgs      String[]
   locations String[]
   content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, contentId])
+}
+
+enum MaterialSource {
+  FAVORITE
+  KNOWLEDGE
+}
+
+enum ReportStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+}
+
+model ReportTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  markdown    String?
+  metadata    Json?
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reports     Report[]
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  title      String
+  summary    String?
+  status     ReportStatus @default(DRAFT)
+  templateId String?
+  authorId   String?
+  markdown   String?
+  metadata   Json?
+  version    Int          @default(1)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  template  ReportTemplate?  @relation(fields: [templateId], references: [id])
+  materials ReportMaterial[]
+}
+
+model ReportMaterial {
+  id         String         @id @default(cuid())
+  reportId   String
+  sourceType MaterialSource
+  sourceId   String
+  title      String?
+  snippet    String?
+  metadata   Json?
+  createdAt  DateTime       @default(now())
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model Knowledge {
+  id              String           @id @default(cuid())
+  name            String
+  description     String?
+  ownerId         String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  files           KnowledgeFile[]
+  knowledgeChunks KnowledgeChunk[]
+}
+
+model KnowledgeFile {
+  id          String   @id @default(cuid())
+  knowledgeId String
+  name        String
+  mimeType    String?
+  size        Int?
+  storageKey  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  knowledge Knowledge        @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  chunks    KnowledgeChunk[]
+}
+
+model KnowledgeChunk {
+  id          String   @id @default(cuid())
+  knowledgeId String
+  fileId      String?
+  content     String
+  metadata    Json?
+  embedding   Bytes?
+  chunkIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  knowledge Knowledge      @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  file      KnowledgeFile? @relation(fields: [fileId], references: [id])
+
+  @@index([knowledgeId])
 }
