@@ -11,8 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlusIcon, Search } from "lucide-react";
-import { Category } from "@/lib/generated/prisma";
-import { Prisma } from "@/lib/generated/prisma";
+import { Category } from "@/app/generated/prisma";
+import { Prisma } from "@/app/generated/prisma";
 import { SettingCard } from "@/components/common";
 import EditKeywordDialog from "./KeywordDialog";
 import KeywordsTable from "./Keywords";

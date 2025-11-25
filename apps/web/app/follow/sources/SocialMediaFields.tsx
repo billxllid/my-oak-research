@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/business";
 import SelectProxy from "./SelectProxy";
-import { Proxy } from "@/lib/generated/prisma";
+import { Proxy } from "@/app/generated/prisma";
 import {
   SourceCreateSchema,
   SocialMediaSourceCreateSchema,
@@ -18,7 +18,7 @@ import {
 import { Controller } from "react-hook-form";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { SelectItem } from "@/components/ui/select";
-import { SocialPlatform } from "@/lib/generated/prisma";
+import { SocialPlatform } from "@/app/generated/prisma";
 
 interface SocialMediaFieldsProps {
   register: UseFormRegister<z.infer<typeof SourceCreateSchema>>;

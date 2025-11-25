@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { SourceType } from "@/lib/generated/prisma";
+import { SourceType } from "@/app/generated/prisma";
 
 // Helper to get the correct API endpoint based on source type
 const getApiEndpoint = (type: SourceType, id?: string) => {

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Keyword, Category, Proxy } from "@/lib/generated/prisma";
+import { Keyword, Category, Proxy } from "@/app/generated/prisma";
 import { QueryWithAggregations, SourceWithRelations } from "@/lib/types";
 
 const fetcher = async <T>(url: string): Promise<T[]> => {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon, PlayIcon } from "lucide-react";
 import { Progress } from "@/components/ui";
-import { Keyword, Source } from "@/lib/generated/prisma";
+import { Keyword, Source } from "@/app/generated/prisma";
 import { QueryWithAggregations } from "@/lib/types";
 import {
   DataTable,
@@ -74,7 +74,7 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
       render: (query) => {
         const runtime = progressMap[query.id];
         const latestRun = query.latestRun;
-        const percent = runtime ? runtime.progress : latestRun?.progress ?? 0;
+        const percent = runtime ? runtime.progress : (latestRun?.progress ?? 0);
         return (
           <div className="flex justify-center">
             <div className="w-24">
@@ -155,7 +155,7 @@ const QueriesTable = ({ queries, keywords, sources }: Props) => {
                       progress:
                         typeof data?.progress === "number"
                           ? data.progress
-                          : prev[query.id]?.progress ?? 0,
+                          : (prev[query.id]?.progress ?? 0),
                       status: data?.type,
                     },
                   }));

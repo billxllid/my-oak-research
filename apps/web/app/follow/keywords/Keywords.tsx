@@ -1,6 +1,6 @@
 "use client";
 
-import { Category, Prisma } from "@/lib/generated/prisma";
+import { Category, Prisma } from "@/app/generated/prisma";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon, XIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

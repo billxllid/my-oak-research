@@ -10,7 +10,7 @@ import SocialMediaSources from "./SocialMediaSources";
 import { useFollow } from "@/hooks/useFollow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SocialMediaSource, SourceWithRelations } from "@/lib/types";
-import type { Proxy } from "@/lib/generated/prisma";
+import type { Proxy } from "@/app/generated/prisma";
 
 const isSocialMediaSource = (
   source: SourceWithRelations

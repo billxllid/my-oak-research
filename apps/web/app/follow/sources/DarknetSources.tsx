@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
-import { Source, DarknetSourceConfig, Proxy } from "@/lib/generated/prisma";
+import { Source, DarknetSourceConfig, Proxy } from "@/app/generated/prisma";
 import { DarknetSource as DarknetSourceBase } from "@/lib/types";
 import {
   DataTable,
@@ -23,7 +23,9 @@ interface Props {
 }
 
 const DarknetSources = ({ sources, proxies }: Props) => {
-  const [editingSource, setEditingSource] = useState<DarknetSource | undefined>();
+  const [editingSource, setEditingSource] = useState<
+    DarknetSource | undefined
+  >();
 
   const handleEdit = (source: DarknetSource) => {
     setEditingSource(source);
@@ -61,7 +63,7 @@ const DarknetSources = ({ sources, proxies }: Props) => {
       key: "proxy",
       label: "Proxy",
       render: (source) =>
-        source.darknet.proxyId ? source.darknet.proxy?.name ?? "—" : "None",
+        source.darknet.proxyId ? (source.darknet.proxy?.name ?? "—") : "None",
     },
   ];
 

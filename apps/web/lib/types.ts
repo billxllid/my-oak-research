@@ -9,7 +9,7 @@ import {
   Proxy,
   QueryRun,
   TaskStatus,
-} from "@/lib/generated/prisma";
+} from "@/app/generated/prisma";
 
 type QueryRunSummary = Pick<
   QueryRun,

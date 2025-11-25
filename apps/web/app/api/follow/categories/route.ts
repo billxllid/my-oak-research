@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { json, badRequest, conflict, serverError } from "@/app/api/_utils/http";
 import { CategoryCreateSchema } from "@/app/api/_utils/zod";
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
 
 export async function GET() {

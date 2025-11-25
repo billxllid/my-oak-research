@@ -7,7 +7,7 @@ import {
   serverError,
 } from "@/app/api/_utils/http";
 import { KeywordUpdateSchema } from "@/app/api/_utils/zod";
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
 
 function normalizeTokens(arr: string[] | undefined) {
@@ -85,7 +85,9 @@ export async function PATCH(
         ...("excludes" in data ? { excludes: excludes ?? [] } : {}),
         ...("synonyms" in data ? { synonyms: synonymsClean ?? [] } : {}),
         ...("active" in data ? { active: !!data.active } : {}),
-        ...("enableAiExpand" in data ? { enableAiExpand: !!data.enableAiExpand } : {}),
+        ...("enableAiExpand" in data
+          ? { enableAiExpand: !!data.enableAiExpand }
+          : {}),
       },
       include: { category: true },
     });

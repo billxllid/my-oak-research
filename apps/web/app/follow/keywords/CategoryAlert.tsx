@@ -1,6 +1,6 @@
 "use client";
 
-import { Category } from "@/lib/generated/prisma";
+import { Category } from "@/app/generated/prisma";
 import { DeleteAlert } from "@/components/common";
 
 const DeleteCategoryDialog = ({

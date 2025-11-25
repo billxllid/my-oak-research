@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { json, badRequest, serverError, conflict } from "@/app/api/_utils/http";
 import { SourceCreateSchema, SourceQuerySchema } from "@/app/api/_utils/zod";
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
 
 // 帮助函数：将 null 转换为 Prisma.JsonNull，undefined 保持不变

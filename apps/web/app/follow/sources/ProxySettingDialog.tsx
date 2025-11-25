@@ -3,7 +3,7 @@
 import { SettingEditDialog } from "@/components/layout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Proxy, ProxyType } from "@/lib/generated/prisma";
+import { Proxy, ProxyType } from "@/app/generated/prisma";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -111,8 +111,8 @@ const EditProxySettingDialog = ({
             ? "Updating..."
             : "Adding..."
           : currentProxy
-          ? "Update"
-          : "Add"
+            ? "Update"
+            : "Add"
       }
       onSubmit={handleSubmit(onSubmit)}
     >

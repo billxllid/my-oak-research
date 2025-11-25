@@ -26,8 +26,8 @@ import { Input } from "@/components/ui/input";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { SelectItem } from "@/components/ui/select";
 import { ErrorMessage } from "@/components/business";
-import type { Proxy } from "@/lib/generated/prisma";
-import { SourceType } from "@/lib/generated/prisma";
+import type { Proxy } from "@/app/generated/prisma";
+import { SourceType } from "@/app/generated/prisma";
 import {
   SourceWithRelations,
   WebSource,
@@ -148,8 +148,8 @@ const getDefaultValues = (
         render:
           typeof (darknetRelation as unknown as { render?: boolean })
             ?.render === "boolean"
-            ? (darknetRelation as unknown as { render?: boolean })?.render ??
-              false
+            ? ((darknetRelation as unknown as { render?: boolean })?.render ??
+              false)
             : false,
         parseRules:
           (
@@ -432,8 +432,8 @@ const SourceDialog = ({
             ? "Updating..."
             : "Adding..."
           : isUpdate
-          ? "Update"
-          : "Add"
+            ? "Update"
+            : "Add"
       }
       onSubmit={handleSubmit(onSubmit)}
     >

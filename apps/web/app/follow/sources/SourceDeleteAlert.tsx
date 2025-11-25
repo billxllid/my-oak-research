@@ -1,6 +1,6 @@
 "use client";
 
-import { Source } from "@/lib/generated/prisma";
+import { Source } from "@/app/generated/prisma";
 import { DeleteAlert } from "@/components/common";
 
 interface Props {

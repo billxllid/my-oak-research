@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import type { Prisma, Content } from "@/lib/generated/prisma";
+import type { Prisma, Content } from "@/app/generated/prisma";
 
 const contentTypeSchema = z.enum(["Web", "Client", "Darknet"]);
 const ContentQuerySchema = z.object({

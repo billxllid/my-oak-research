@@ -1,6 +1,6 @@
 "use client";
 
-import { Category } from "@/lib/generated/prisma";
+import { Category } from "@/app/generated/prisma";
 import {
   CategoryUpdateSchema,
   CategoryCreateSchema,
@@ -69,8 +69,8 @@ const EditCategoryDialog = ({
             ? "Updating..."
             : "Adding..."
           : category
-          ? "Update"
-          : "Add"
+            ? "Update"
+            : "Add"
       }
       onSubmit={handleSubmit(onSubmit)}
     >

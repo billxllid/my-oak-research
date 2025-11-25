@@ -2,7 +2,7 @@ import React from "react";
 import { Control, Controller } from "react-hook-form";
 import { SelectItem } from "@/components/ui/select";
 import { ControlledSelect } from "@/components/ui/controlled-select";
-import { Proxy } from "@/lib/generated/prisma";
+import { Proxy } from "@/app/generated/prisma";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/business";
 

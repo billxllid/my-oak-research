@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { SelectItem } from "@/components/ui/select";
 import { ErrorMessage } from "@/components/business";
-import { Query, Keyword, Source } from "@/lib/generated/prisma";
+import { Query, Keyword, Source } from "@/app/generated/prisma";
 import { useQueryMutation } from "@/hooks/useQueryMutation";
 import { MultiSelect } from "@/components/common/multi-select";
 
@@ -138,8 +138,8 @@ const QueryDialog = ({
             ? "Updating..."
             : "Adding..."
           : isUpdate
-          ? "Update"
-          : "Add"
+            ? "Update"
+            : "Add"
       }
       onSubmit={handleSubmit(onSubmit)}
     >

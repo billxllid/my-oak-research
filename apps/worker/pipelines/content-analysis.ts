@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createHash } from "crypto";
 
 import prisma from "@/lib/prisma";
-import { SourceType, ContentType, CrawlerEngine } from "@/lib/generated/prisma";
+import { SourceType, ContentType, CrawlerEngine } from "@/app/generated/prisma";
 import {
   SourceWithRelations,
   SocialMediaSource,

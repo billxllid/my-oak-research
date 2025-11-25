@@ -1,4 +1,4 @@
-import { Query } from "@/lib/generated/prisma";
+import { Query } from "@/app/generated/prisma";
 import { DeleteAlert } from "@/components/common";
 
 interface Props {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Proxy } from "@/lib/generated/prisma";
+import { Proxy } from "@/app/generated/prisma";
 import { DeleteAlert } from "@/components/common";
 
 interface Props {

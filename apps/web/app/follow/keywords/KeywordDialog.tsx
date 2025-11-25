@@ -1,6 +1,6 @@
 "use client";
 
-import { Category, Prisma } from "@/lib/generated/prisma";
+import { Category, Prisma } from "@/app/generated/prisma";
 import { SelectItem } from "@/components/ui/select";
 import { ControlledSelect } from "@/components/ui/controlled-select";
 import { Controller } from "react-hook-form";
@@ -81,8 +81,8 @@ const EditKeywordDialog = ({
             ? "Updating..."
             : "Adding..."
           : keyword
-          ? "Update"
-          : "Add"
+            ? "Update"
+            : "Add"
       }
       title={keyword ? "Edit Keyword" : "Add Keyword"}
       description={

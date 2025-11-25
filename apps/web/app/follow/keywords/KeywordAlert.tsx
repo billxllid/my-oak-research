@@ -1,6 +1,6 @@
 "use client";
 
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/app/generated/prisma";
 import { DeleteAlert } from "@/components/common";
 
 type KeywordWithCategory = Prisma.KeywordGetPayload<{

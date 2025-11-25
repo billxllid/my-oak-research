@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
-import { SocialMediaSourceConfig, Source, Proxy } from "@/lib/generated/prisma";
+import { SocialMediaSourceConfig, Source, Proxy } from "@/app/generated/prisma";
 import {
   DataTable,
   DataTableColumn,

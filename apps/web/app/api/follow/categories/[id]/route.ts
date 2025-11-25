@@ -7,7 +7,7 @@ import {
   serverError,
 } from "@/app/api/_utils/http";
 import { CategoryUpdateSchema } from "@/app/api/_utils/zod";
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
 
 export async function PATCH(

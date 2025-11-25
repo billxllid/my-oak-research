@@ -2,7 +2,7 @@
   "name": "my-oak-research",
   "private": true,
   "scripts": {
-    "dev": "turbo run dev",
+    "dev": "dotenv -e .env turbo run dev",
     "build": "turbo run build",
     "start": "turbo run start",
     "lint": "turbo run lint",
@@ -10,17 +10,18 @@
     "check-types": "turbo run check-types",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "devDependencies": {
     "prettier": "^3.6.2",
-    "turbo": "^2.6.1",
-    "tsx": "^4.20.5"
+    "tsx": "^4.20.5",
+    "turbo": "^2.6.1"
   },
   "engines": {
     "node": ">=18"
   },
   "packageManager": "npm@11.5.1",
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  }
+  "dependencies": {}
 }

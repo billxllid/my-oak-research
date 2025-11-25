@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorMessage } from "@/components/business";
 import SelectProxy from "./SelectProxy";
-import { Proxy } from "@/lib/generated/prisma";
+import { Proxy } from "@/app/generated/prisma";
 import {
   SourceCreateSchema,
   CrawlerEngineEnum,
