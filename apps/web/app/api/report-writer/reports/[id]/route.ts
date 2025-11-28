@@ -12,8 +12,9 @@ const fail = (message: string, status = 400, details?: unknown) =>
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params;
   if (!params.id) {
     return fail("Missing report id");
   }
@@ -27,8 +28,9 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params;
   if (!params.id) {
     return fail("Missing report id");
   }
@@ -37,31 +39,46 @@ export async function PATCH(
   if (!parse.success) {
     return fail("Invalid payload", 400, parse.error.flatten());
   }
-  const report = await prisma.report.update({
-    where: { id: params.id },
-    data: {
-      title: parse.data.title,
-      summary: parse.data.summary,
-      markdown: parse.data.markdown,
-      status: parse.data.status,
-      templateId: parse.data.templateId,
-      metadata: parse.data.metadata,
-    },
-    include: {
-      materials: true,
-      template: true,
-    },
-  });
+  let report;
+  try {
+    report = await prisma.report.update({
+      where: { id: params.id },
+      data: {
+        title: parse.data.title,
+        summary: parse.data.summary,
+        markdown: parse.data.markdown,
+        status: parse.data.status,
+        templateId: parse.data.templateId,
+        metadata: parse.data.metadata,
+      },
+      include: {
+        materials: true,
+        template: true,
+      },
+    });
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      (error as { code?: string }).code === "P2025"
+    ) {
+      return fail("Report not found", 404);
+    }
+    throw error;
+  }
   return respond(report);
 }
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params;
   if (!params.id) {
     return fail("Missing report id");
   }
-  await prisma.report.deleteMany({ where: { id: params.id } });
+  const result = await prisma.report.deleteMany({ where: { id: params.id } });
+  if (result.count === 0) {
+    return fail("Report not found", 404);
+  }
   return respond({ id: params.id });
 }
