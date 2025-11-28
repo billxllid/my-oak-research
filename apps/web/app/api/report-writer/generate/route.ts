@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
       })
     : null;
 
+  if (parse.data.templateId && !template) {
+    return fail("Template not found", 404);
+  }
+
   const materialOverview =
     parse.data.materials
       ?.map(
