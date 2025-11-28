@@ -42,20 +42,53 @@ export async function POST(req: NextRequest) {
     template?.markdown ? `Template content:\n${template.markdown}` : null,
     `Materials:\n${materialOverview}`,
     `Task:\n${stripPromptLike(parse.data.prompt)}`,
+    `Output format:\n${JSON.stringify(
+      {
+        title: "string (report title)",
+        summary: "string (plain-text summary, 150-200 characters)",
+        markdown: "string (full report body in Markdown)",
+        sections: [
+          {
+            heading: "string",
+            content: "string",
+            references: ["string"],
+          },
+        ],
+      },
+      null,
+      2
+    )}`,
   ]
     .filter(Boolean)
     .join("\n\n");
 
-  const llmResponse = await llmGateway.json("report-generate", {
-    prompt,
-    model: parse.data.options?.model,
-    temperature: parse.data.options?.temperature,
-    metadata: redact({
-      userId,
-      templateId: parse.data.templateId,
-      materials: parse.data.materials,
-    }),
-  });
+  const chosenModel =
+    parse.data.options?.model ?? process.env.LLM_DEFAULT_MODEL ?? "gpt-5";
+
+  let llmResponse: unknown;
+  try {
+    llmResponse = await llmGateway.json("report-generate", {
+      prompt,
+      model: chosenModel,
+      temperature: parse.data.options?.temperature,
+      metadata: redact({
+        userId,
+        templateId: parse.data.templateId,
+        materials: parse.data.materials,
+      }),
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unknown error when calling LLM gateway";
+    const isClientError = /4\d{2}/.test(message);
+    return fail(
+      `LLM gateway error (${chosenModel})`,
+      isClientError ? 422 : 502,
+      { detail: message }
+    );
+  }
 
   const checked = ReportLLMOutputSchema.safeParse(llmResponse);
   if (!checked.success) {

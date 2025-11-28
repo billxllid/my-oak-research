@@ -1,4 +1,5 @@
-import { z, ZodType } from "zod";
+import { ZodType } from "zod";
+import OpenAI from "openai";
 
 type JsonRequest = {
   prompt: string;
@@ -19,29 +20,49 @@ const DEFAULT_LLMSUMMARY = (prompt: string) => {
 
 export const llmGateway = {
   async json<T>(task: string, request: JsonRequest): Promise<T> {
-    const gatewayUrl = process.env.LLM_GATEWAY_URL;
+    const gatewayUrl =
+      process.env.LLM_GATEWAY_URL ??
+      process.env.LLM_GATEWAY_BASE_URL ??
+      "https://api.llmgateway.io/v1";
+    const apiKey = process.env.LLM_GATEWAY_API_KEY;
     let output: unknown;
-    if (gatewayUrl) {
-      const url = new URL(gatewayUrl);
-      url.pathname = url.pathname.replace(/\/$/, "") + "/json";
-      const response = await fetch(url.toString(), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+
+    type ChatCompletionMessages = Parameters<
+      OpenAI["chat"]["completions"]["create"]
+    >[0]["messages"];
+
+    if (gatewayUrl && apiKey) {
+      const client = new OpenAI({ apiKey, baseURL: gatewayUrl });
+
+      const composedMessage: ChatCompletionMessages = [
+        {
+          role: "user",
+          content: [`Task: ${task}`, request.prompt]
+            .filter(Boolean)
+            .join("\n\n"),
         },
-        body: JSON.stringify({
-          task,
-          prompt: request.prompt,
-          model: request.model,
-          temperature: request.temperature ?? 0.3,
-          metadata: request.metadata,
-        }),
+      ];
+
+      const completion = await client.chat.completions.create({
+        model: request.model ?? "gpt-5",
+        messages: composedMessage as ChatCompletionMessages,
+        temperature: request.temperature ?? 0.3,
       });
-      if (!response.ok) {
-        const text = await response.text().catch(() => "failed");
-        throw new Error(`LLM Gateway error (${response.status}): ${text}`);
+
+      const text =
+        completion.choices?.[0]?.message?.content?.trim() ??
+        completion.choices?.[0]?.message?.content ??
+        "";
+
+      if (text) {
+        try {
+          output = JSON.parse(text);
+        } catch {
+          output = text;
+        }
+      } else {
+        output = text;
       }
-      output = await response.json();
     } else {
       output = {
         summary: DEFAULT_LLMSUMMARY(request.prompt),
