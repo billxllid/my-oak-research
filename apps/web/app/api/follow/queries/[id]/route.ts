@@ -1,5 +1,5 @@
-import prisma from '@/lib/prisma';
-import { NextResponse } from 'next/server';
+import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
@@ -34,13 +34,22 @@ export async function GET(
   return NextResponse.json(queryWithCounts);
 }
 
-export async function PUT(
+export async function PATCH(
   req: Request,
   { params: paramsPromise }: { params: Promise<{ id: string }> }
 ) {
   const params = await paramsPromise;
   const data = await req.json();
-  const { name, description, frequency, cronSchedule, enabled, keywordIds, sourceIds, rules } = data;
+  const {
+    name,
+    description,
+    frequency,
+    cronSchedule,
+    enabled,
+    keywordIds,
+    sourceIds,
+    rules,
+  } = data;
 
   // Validate keywordIds
   if (keywordIds && keywordIds.length > 0) {
@@ -78,10 +87,10 @@ export async function PUT(
       enabled,
       rules,
       keywords: {
-        set: keywordIds?.map((id: string) => ({ id })) || []
+        set: keywordIds?.map((id: string) => ({ id })) || [],
       },
       sources: {
-        set: sourceIds?.map((id: string) => ({ id })) || []
+        set: sourceIds?.map((id: string) => ({ id })) || [],
       },
     },
   });

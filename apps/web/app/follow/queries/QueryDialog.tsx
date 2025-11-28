@@ -109,9 +109,14 @@ const QueryDialog = ({
   });
 
   const onSubmit: SubmitHandler<QueryFormValues> = (data) => {
+    let parsedRules: QueryFormValues["rules"] = undefined;
+    if (data.rules) {
+      parsedRules =
+        typeof data.rules === "string" ? JSON.parse(data.rules) : data.rules;
+    }
     const submittedData = {
       ...data,
-      rules: data.rules ? JSON.parse(data.rules) : undefined,
+      rules: parsedRules,
       // keywords and sources should be connect operations, not just IDs
       // Backend API expects keywordIds and sourceIds for connect, so no change needed here.
     };

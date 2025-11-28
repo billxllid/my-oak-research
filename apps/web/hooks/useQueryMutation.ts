@@ -14,7 +14,7 @@ async function submitQuery(data: {
   const { formData, endpoint, isUpdate } = data;
 
   const response = await fetch(endpoint, {
-    method: isUpdate ? "PUT" : "POST",
+    method: isUpdate ? "PATCH" : "POST",
     headers: {
       "Content-Type": "application/json",
     },
@@ -29,10 +29,15 @@ async function submitQuery(data: {
   return response.json();
 }
 
-export function useQueryMutation({ queryId, onSuccess }: UseQueryMutationOptions = {}) {
+export function useQueryMutation({
+  queryId,
+  onSuccess,
+}: UseQueryMutationOptions = {}) {
   const queryClient = useQueryClient();
   const isUpdate = !!queryId;
-  const endpoint = queryId ? `/api/follow/queries/${queryId}` : "/api/follow/queries";
+  const endpoint = queryId
+    ? `/api/follow/queries/${queryId}`
+    : "/api/follow/queries";
 
   return useMutation({
     mutationFn: (formData: Record<string, unknown>) =>
@@ -58,7 +63,9 @@ export function useQueryMutation({ queryId, onSuccess }: UseQueryMutationOptions
   });
 }
 
-export function useDeleteQueryMutation({ onSuccess }: { onSuccess?: () => void } = {}) {
+export function useDeleteQueryMutation({
+  onSuccess,
+}: { onSuccess?: () => void } = {}) {
   const queryClient = useQueryClient();
 
   return useMutation({

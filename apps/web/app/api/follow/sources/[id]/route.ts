@@ -199,6 +199,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const exists = await prisma.source.findUnique({ where: { id } });
+    if (!exists) return notFound("Source not found");
+
     // 先删 config 再删 source（若未设级联）
     await prisma.$transaction(async (tx) => {
       await tx.webSourceConfig.deleteMany({ where: { sourceId: id } });
@@ -209,6 +212,12 @@ export async function DELETE(
     });
     return json({ ok: true });
   } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2025"
+    ) {
+      return notFound("Source not found");
+    }
     return serverError(e);
   }
 }
