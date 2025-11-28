@@ -1,7 +1,6 @@
 import prisma from "@/lib/prisma";
 import { json, badRequest, conflict, serverError } from "@/app/api/_utils/http";
 import { KeywordCreateSchema, KeywordQuerySchema } from "@/app/api/_utils/zod";
-import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
 
 function normalizeTokens(arr: string[]) {
@@ -26,10 +25,11 @@ export async function GET(req: Request) {
       );
 
     const { q, categoryId, lang, active, page, pageSize } = parsed.data;
+    const hasLangParam = new URL(req.url).searchParams.has("lang");
     const where: Record<string, unknown> = {};
     if (q) where.name = { contains: q, mode: "insensitive" };
     if (categoryId) where.categoryId = categoryId;
-    if (lang) where.lang = lang;
+    if (hasLangParam && lang) where.lang = lang;
     if (active) where.active = active === "true";
 
     const [total, items] = await Promise.all([
@@ -60,6 +60,17 @@ export async function POST(req: Request) {
       );
 
     const data = parsed.data;
+    if (data.categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: data.categoryId },
+      });
+      if (!category) {
+        return badRequest("Invalid categoryId", {
+          message: "Category does not exist",
+          field: "categoryId",
+        });
+      }
+    }
     const includes = normalizeTokens(data.includes);
     const excludes = normalizeTokens(data.excludes);
     const synonyms = normalizeTokens(data.synonyms || []);
@@ -91,12 +102,9 @@ export async function POST(req: Request) {
 
     return json(created, 201);
   } catch (e) {
-    if (
-      e instanceof Prisma.PrismaClientKnownRequestError &&
-      e.code === "P2002"
-    ) {
-      // Check which field caused the unique constraint violation
-      if ((e.meta?.target as string[])?.includes("name")) {
+    const prismaError = e as { code?: string; meta?: { target?: string[] } };
+    if (prismaError?.code === "P2002") {
+      if (prismaError.meta?.target?.includes("name")) {
         return conflict(
           "Keyword name already exists. Please choose a different name."
         );

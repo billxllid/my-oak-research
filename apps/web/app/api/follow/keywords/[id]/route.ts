@@ -55,9 +55,15 @@ export async function PATCH(
     if (!exists) return notFound("Keyword not found");
 
     const data = parsed.data;
-    const includes = normalizeTokens(data.includes);
-    const excludes = normalizeTokens(data.excludes);
-    const synonyms = normalizeTokens(data.synonyms);
+    const bodyHas = (key: string) =>
+      Object.prototype.hasOwnProperty.call(body, key);
+    const hasIncludes = bodyHas("includes");
+    const hasExcludes = bodyHas("excludes");
+    const hasSynonyms = bodyHas("synonyms");
+
+    const includes = hasIncludes ? normalizeTokens(data.includes) : undefined;
+    const excludes = hasExcludes ? normalizeTokens(data.excludes) : undefined;
+    const synonyms = hasSynonyms ? normalizeTokens(data.synonyms) : undefined;
 
     // 交叉去重（仅在提供时处理）
     let includesClean = includes;
@@ -81,9 +87,9 @@ export async function PATCH(
         ...("categoryId" in data
           ? { categoryId: data.categoryId ?? null }
           : {}),
-        ...("includes" in data ? { includes: includesClean ?? [] } : {}),
-        ...("excludes" in data ? { excludes: excludes ?? [] } : {}),
-        ...("synonyms" in data ? { synonyms: synonymsClean ?? [] } : {}),
+        ...(hasIncludes ? { includes: includesClean ?? [] } : {}),
+        ...(hasExcludes ? { excludes: excludes ?? [] } : {}),
+        ...(hasSynonyms ? { synonyms: synonymsClean ?? [] } : {}),
         ...("active" in data ? { active: !!data.active } : {}),
         ...("enableAiExpand" in data
           ? { enableAiExpand: !!data.enableAiExpand }
